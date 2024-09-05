@@ -1,43 +1,42 @@
-# JSON common operation encapsulation
-  JSONÊı¾İ¶ÁĞ´·â×°
+ï»¿# TRJ - JSON simple read and write
 - v0.9.1
 - 2024-09-05 by gale
-- https://github.com/higale/rjson
+- https://github.com/higale/RJSON
 
 ## Properties:
-- Items[Path] Â·¾¶¶ÁĞ´£¬¶ÔObjectºÍArray¶¼ÓĞĞ§
+- Items[Path] è·¯å¾„è¯»å†™ï¼Œå¯¹Objectå’ŒArrayéƒ½æœ‰æ•ˆ
 
         a['x.y[2].z'] := 5;
         b['[3].ok'] := false;
 
-- Items[Index] Êı×é¶ÁĞ´
+- Items[Index] æ•°ç»„è¯»å†™
 
         a[3][1] := 'hello';
 
-- Pairs[Index] »ñÈ¡JSONObjectÏÂµÄ¼üÖµ¶Ô
+- Pairs[Index] è·å–JSONObjectä¸‹çš„é”®å€¼å¯¹
 
         for var i := 0 to RJ.Count do
         begin
             Memo1.Lines.Add(RJ.Pairs[i].Key + '=' + RJ.Pairs[i].Format(0));
         end;
 
-- Count  Object»òArray°üº¬ÌõÄ¿Êı£¬ÆäËüÀàĞÍ·µ»Ø0
-- Index  ÌõÄ¿ÔÚArrayÖĞµÄË÷ÒıÖµ£¬²»ÊÇÊı×éÊıÌõÄ¿¾İ·µ»Ø-1
-- Key    Èç¹ûÊÇ¼üÖµ¶ÔÊı¾İ£¬·µ»Ø¼üÖµ£¬·ñÔò·µ»Ø¿Õ
-- Root   ¸ùÊı¾İ½Ó¿Ú
-- Path   ÖµµÄÂ·¾¶
-- JSONValue °üº¬µÄTJSONValueÖµ
+- Count  Objectæˆ–ArrayåŒ…å«æ¡ç›®æ•°ï¼Œå…¶å®ƒç±»å‹è¿”å›0
+- Index  æ¡ç›®åœ¨Arrayä¸­çš„ç´¢å¼•å€¼ï¼Œä¸æ˜¯æ•°ç»„æ•°æ¡ç›®æ®è¿”å›-1
+- Key    å¦‚æœæ˜¯é”®å€¼å¯¹æ•°æ®ï¼Œè¿”å›é”®å€¼ï¼Œå¦åˆ™è¿”å›ç©º
+- Root   æ ¹æ•°æ®æ¥å£
+- Path   å€¼çš„è·¯å¾„
+- JSONValue åŒ…å«çš„TJSONValueå€¼
 
 ## Methods
-- ToStr ×ª»»Îª×Ö·û´®£¬È±Ê¡Îª¿Õ
+- ToStr è½¬æ¢ä¸ºå­—ç¬¦ä¸²ï¼Œç¼ºçœä¸ºç©º
 
         var str: string;
 
         str := RJ['title'];
         str := RJ['title'].ToStr;
-        str := RJ['title'].ToStr('Ã»ÓĞ±êÌâ');
+        str := RJ['title'].ToStr('æ²¡æœ‰æ ‡é¢˜');
 
-- ToInt ×ª»»ÎªÕûÊı£¬È±Ê¡Îª0
+- ToInt è½¬æ¢ä¸ºæ•´æ•°ï¼Œç¼ºçœä¸º0
 
         var i: integer;
 
@@ -46,7 +45,7 @@
         i := RJ['num'].ToInt(-1);
 
 
-- ToInt64 ×ª»»Îª64Î»ÕûÊı£¬È±Ê¡Îª0
+- ToInt64 è½¬æ¢ä¸º64ä½æ•´æ•°ï¼Œç¼ºçœä¸º0
 
         var i64: Int64;
 
@@ -54,7 +53,7 @@
         i64 := RJ['num64'].ToInt64;
         i64 := RJ['num64'].ToInt64(-1);
 
-- ToFloat ×ª»»Îª¸¡µãÊı(Ê¹ÓÃ Extended)£¬È±Ê¡Îª0.0
+- ToFloat è½¬æ¢ä¸ºæµ®ç‚¹æ•°(ä½¿ç”¨ Extended)ï¼Œç¼ºçœä¸º0.0
 
         var f: Extended;
 
@@ -62,7 +61,7 @@
         f := RJ['num'].ToFloat;
         f := RJ['num'].ToFloat(100.0);
 
-- ToBool ×ª»»Îª Boolean£¬È±Ê¡Îª False
+- ToBool è½¬æ¢ä¸º Booleanï¼Œç¼ºçœä¸º False
 
         var b:Boolean;
 
@@ -70,43 +69,43 @@
         b := RJ['bool'].ToBool;
         b := RJ['bool'].ToBool(True);
 
-- RootIs<T: TJSONValue> ¸ùÊÇ·ñÊÇÄ³ÖÖÀàĞÍ(TJSONObject¡¢TJSONArrayµÈ)
-- ValueIs<T: TJSONValue> µ±Ç°ÖµÊÇ·ñÊÇÄ³ÖÖÀàĞÍ(TJSONObject¡¢TJSONArrayµÈ)
-- CloneJSONValue ¿ËÂ¡Ò»·İµ±Ç°Öµ£¬Èç¹ûµ±Ç°Öµ²»´æÔÚ£¬ÔòÉú³É TJSONNull
-- Reset ¸´Î»µ½³ö³§×´Ì¬
-- Format Êä³ö¸ñÊ½»¯ºÃµÄJSON×Ö·û´®
+- RootIs<T: TJSONValue> æ ¹æ˜¯å¦æ˜¯æŸç§ç±»å‹(TJSONObjectã€TJSONArrayç­‰)
+- ValueIs<T: TJSONValue> å½“å‰å€¼æ˜¯å¦æ˜¯æŸç§ç±»å‹(TJSONObjectã€TJSONArrayç­‰)
+- CloneJSONValue å…‹éš†ä¸€ä»½å½“å‰å€¼ï¼Œå¦‚æœå½“å‰å€¼ä¸å­˜åœ¨ï¼Œåˆ™ç”Ÿæˆ TJSONNull
+- Reset å¤ä½åˆ°å‡ºå‚çŠ¶æ€
+- Format è¾“å‡ºæ ¼å¼åŒ–å¥½çš„JSONå­—ç¬¦ä¸²
 
-        str1 := RJ.Format(2); // Ëõ½ø2¸ö¿Õ¸ñ(È±Ê¡4¸ö)
-        str2 := RJ.Format(0); // Ñ¹Ëõ¸ñÊ½£¬ÎŞËõ½øÎŞ»»ĞĞ
+        str1 := RJ.Format(2); // ç¼©è¿›2ä¸ªç©ºæ ¼(ç¼ºçœ4ä¸ª)
+        str2 := RJ.Format(0); // å‹ç¼©æ ¼å¼ï¼Œæ— ç¼©è¿›æ— æ¢è¡Œ
 
-- ParseJSONValue ´Ó×Ö·û´®¼ÓÔØÊı¾İ
+- ParseJSONValue ä»å­—ç¬¦ä¸²åŠ è½½æ•°æ®
 
         RJ.ParseJSONValue('{"a":1}');
 
-- LoadFromFile ´ÓÎÄ¼ş¼ÓÔØÊı¾İ
+- LoadFromFile ä»æ–‡ä»¶åŠ è½½æ•°æ®
 
         procedure LoadFromFile(
-            const AFileName: string;   // JSONÎÄ¼şÃû
-            AUseBool: boolean = False; // Óöµ½JSONÊı¾İÖĞµÄ true »ò false Ê±£¬ÊÇ·ñ´´½¨ TJSONBool ÀàĞÍµÄÖµ
-            ARaiseExc: boolean = False // Óöµ½ÎŞĞ§µÄ JSON Êı¾İÊ±ÊÇ·ñÅ×³öÒì³£
+            const AFileName: string;   // JSONæ–‡ä»¶å
+            AUseBool: boolean = False; // é‡åˆ°JSONæ•°æ®ä¸­çš„ true æˆ– false æ—¶ï¼Œæ˜¯å¦åˆ›å»º TJSONBool ç±»å‹çš„å€¼
+            ARaiseExc: boolean = False // é‡åˆ°æ— æ•ˆçš„ JSON æ•°æ®æ—¶æ˜¯å¦æŠ›å‡ºå¼‚å¸¸
         );
 
-- SaveToFile ±£´æµ½ÎÄ¼ş
+- SaveToFile ä¿å­˜åˆ°æ–‡ä»¶
 
         procedure aveToFile(
-            const AFileName: string;            // ÎÄ¼şÃû
-            AIndentation: Integer = 4;          // Ëõ½ø¿Õ¸ñÊı£¬0:²»Ëõ½ø²»»»ĞĞ
-            AWriteBOM: boolean = False;         // ÎÄ¼şÊÇ·ñÌí¼Ó BOM ±ê¼Ç
-            ATrailingLineBreak: boolean = False // ÊÇ·ñÔÚ½áÎ²Ìí¼ÓÒ»¸ö¿ÕĞĞ
+            const AFileName: string;            // æ–‡ä»¶å
+            AIndentation: Integer = 4;          // ç¼©è¿›ç©ºæ ¼æ•°ï¼Œ0:ä¸ç¼©è¿›ä¸æ¢è¡Œ
+            AWriteBOM: boolean = False;         // æ–‡ä»¶æ˜¯å¦æ·»åŠ  BOM æ ‡è®°
+            ATrailingLineBreak: boolean = False // æ˜¯å¦åœ¨ç»“å°¾æ·»åŠ ä¸€ä¸ªç©ºè¡Œ
         );
 
 ## Example:
     procedure TFormMain.btnTestClick(Sender: TObject);
     var
-      RJ, RJ1: TRJSON;
+      RJ, RJ1: TRJ;
       fTemp: Extended;
     begin
-      RJ['title'] := 'hello world! ÄãºÃ£¬ÊÀ½ç£¡';
+      RJ['title'] := 'hello world! ä½ å¥½ï¼Œä¸–ç•Œï¼';
       RJ['a.num'] := 1;
       RJ['a.hah'] := false;
       RJ['b[2]'] := 505;
@@ -139,7 +138,7 @@
 
     procedure TFormMain.btnOpenClick(Sender: TObject);
     var
-      RJ: TRJSON;
+      RJ: TRJ;
       strTmp: string;
     begin
       RJ.LoadFromFile('test.json');
