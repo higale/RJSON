@@ -1,10 +1,8 @@
-# TRJ - JSON 簡單讀取與寫入
-- v0.9.1
-- 2024-09-05 by gale
+﻿# TRJ - JSON Simple Read and Write
+- by gale
 - https://github.com/higale/RJSON
 
 **Languages: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md) | [日本語](README_ja.md) | [한국어](README_ko.md)**
-
 ## 屬性：
 - `Items[Path]` 基於路徑的讀寫，適用於物件和陣列。
 

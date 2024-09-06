@@ -1,7 +1,7 @@
 ﻿{
   TRJ - JSON Simple Read and Write
-  - v0.9.1
-  - 2024-09-05 by gale
+  - v0.9.2
+  - 2024-09-06 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -13,17 +13,29 @@ uses
   System.Generics.Collections;
 
 type
+  /// <summary>Alias for <see cref="TJSONObject"/>.</summary>
   TJObject = TJSONObject;
+  /// <summary>Alias for <see cref="TJSONArray"/>.</summary>
   TJArray = TJSONArray;
+  /// <summary>Alias for <see cref="TJSONValue"/>.</summary>
   TJValue = TJSONValue;
+  /// <summary>Alias for <see cref="TJSONString"/>.</summary>
   TJString = TJSONString;
+  /// <summary>Alias for <see cref="TJSONNumber"/>.</summary>
   TJNumber = TJSONNumber;
+  /// <summary>Alias for <see cref="TJSONBool"/>.</summary>
   TJBool = TJSONBool;
+  /// <summary>Alias for <see cref="TJSONNull"/>.</summary>
   TJNull = TJSONNull;
 
+  /// <summary>
+  /// Type alias for the <see cref="TJSONValue"/> class.
+  /// </summary>
   TJVType = type of TJSONValue;
 
-  { JSON root data interface }
+  /// <summary>
+  /// Interface for the root of a JSON structure.
+  /// </summary>
   IRJRoot = interface
     function GetData: TJSONValue;
     procedure SetData(const AValue: TJSONValue);
@@ -31,7 +43,9 @@ type
     property Data: TJSONValue read GetData write SetData;
   end;
 
-  { JSON root data interface class }
+  /// <summary>
+  /// Class representing the root of a JSON structure, implementing the <see cref="IRJRoot"/> interface.
+  /// </summary>
   TRJRoot = class(TInterfacedObject, IRJRoot)
   private
     FData: TJSONValue;
@@ -46,7 +60,9 @@ type
 
   TRJEnumerator = class;
 
-  { TRJ is equivalent to TRecordJSON }
+  /// <summary>
+  /// Encapsulating common JSON data operation functionalities.<
+  /// </summary>
   TRJ = record
   private
     FRoot: IRJRoot;
@@ -62,6 +78,7 @@ type
     function GetCount: Integer;
     function GetIndex: Integer;
     function GetKey: string;
+    //function GetIsNil: Boolean;
   public
     function GetEnumerator(): TRJEnumerator;
     class operator Initialize(out Dest: TRJ);
@@ -75,32 +92,92 @@ type
     class operator Implicit(const [ref] Value: TRJ): Int64;
     class operator Implicit(Value: Extended): TRJ;
     class operator Implicit(const [ref] Value: TRJ): Extended;
-    class operator Implicit(Value: boolean): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): boolean;
+    class operator Implicit(Value: Boolean): TRJ;
+    class operator Implicit(const [ref] Value: TRJ): Boolean;
     class operator Implicit(const Value: TJSONValue): TRJ;
-
+    /// <summary>Attempts to convert an object to a string representation.</summary>
+    /// <param name="ADefault">A default value to return if the conversion fails.</param>
+    /// <returns>The converted string value, or the specified default value if the conversion fails.</returns>
     function ToStr(const ADefault: string = ''): string;
+    /// <summary>Attempts to convert an object to an integer type.</summary>
+    /// <param name="ADefault">A default value to return if the conversion fails.</param>
+    /// <returns>The converted integer value, or the specified default value if the conversion fails.</returns>
     function ToInt(ADefault: Integer = 0): Integer;
+    /// <summary>Attempts to convert an object to a 64-bit integer type.</summary>
+    /// <param name="ADefault">A default value to return if the conversion fails.</param>
+    /// <returns>The converted 64-bit integer value, or the specified default value if the conversion fails.</returns>
     function ToInt64(ADefault: Int64 = 0): Int64;
+    /// <summary>Attempts to convert an object to a floating-point number.</summary>
+    /// <param name="ADefault">A default value to return if the conversion fails.</param>
+    /// <returns>The converted floating-point value, or the specified default value if the conversion fails.</returns>
     function ToFloat(ADefault: Extended = 0.0): Extended;
-    function ToBool(ADefault: boolean = False): boolean;
+    /// <summary>Attempts to convert an object to a boolean value.</summary>
+    /// <param name="ADefault">A default value to return if the conversion fails.</param>
+    /// <returns>The converted boolean value, or the specified default value if the conversion fails.</returns>
+    function ToBool(ADefault: Boolean = False): Boolean;
+    /// <summary>Gets or sets the item at the specified path.</summary>
+    /// <param name="APath">The path of the item.</param>
+    /// <value>The item at the specified path.</value>
     property Items[const APath: string]: TRJ read GetItems write SetItems; default;
+    /// <summary>Gets or sets the item at the specified index.</summary>
+    /// <param name="AIndex">The index of the item.</param>
+    /// <value>The item at the specified index.</value>
     property Items[AIndex: Integer]: TRJ read GetItems write SetItems; default;
+    /// <summary>Gets the pair at the specified index.</summary>
+    /// <param name="AIndex">The index of the pair.</param>
+    /// <value>The pair at the specified index.</value>
     property Pairs[AIndex: Integer]: TRJ read GetPairs;
+    /// <summary>Gets the count of items.</summary>
+    /// <value>The count of items.</value>
     property Count: Integer read GetCount;
+    /// <summary>Gets the current index.</summary>
+    /// <value>The current index.</value>
     property Index: Integer read GetIndex;
+    /// <summary>Gets the key of the current item.</summary>
+    /// <value>The key of the current item.</value>
     property Key: string read GetKey;
+    /// <summary>Gets the root of the JSON structure.</summary>
+    /// <value>The root of the JSON structure.</value>
     property Root: IRJRoot read FRoot;
+    /// <summary>Gets the current path in the JSON structure.</summary>
+    /// <value>The current path in the JSON structure.</value>
     property Path: string read FPath;
-    function RootIs<T: TJSONValue>: boolean;
-    function ValueIs<T: TJSONValue>: boolean;
+    /// <summary>Determines whether the root is of the specified JSON value type.</summary>
+    /// <typeparam name="T">The type of JSON value to check against.</typeparam>
+    /// <returns><c>true</c> if the root is of the specified type; otherwise, <c>false</c>.</returns>
+    function RootIs<T: TJSONValue>: Boolean;
+    /// <summary>Determines whether the value is of the specified JSON value type.</summary>
+    /// <typeparam name="T">The type of JSON value to check against.</typeparam>
+    /// <returns><c>true</c> if the value is of the specified type; otherwise, <c>false</c>.</returns>
+    function ValueIs<T: TJSONValue>: Boolean;
+    /// <summary>Gets the JSON value.</summary>
+    /// <value>The JSON value.</value>
     property JSONValue: TJSONValue read GetJSONValue;
+    /// <summary>Creates a clone of the JSON value.</summary>
+    /// <returns>A clone of the JSON value.</returns>
     function CloneJSONValue: TJSONValue;
+    /// <summary>Resets the JSON value to its initial state.</summary>
     procedure Reset;
+    /// <summary>Formats the JSON value as a string with optional indentation.</summary>
+    /// <param name="Indentation">The number of spaces to use for indentation. Defaults to 4.</param>
+    /// <returns>The formatted JSON string.</returns>
     function Format(Indentation: Integer = 4): string;
-    procedure ParseJSONValue(const AData: string; AUseBool: boolean = False; ARaiseExc: boolean = False);
-    procedure LoadFromFile(const AFileName: string; AUseBool: boolean = False; ARaiseExc: boolean = False);
-    procedure SaveToFile(const AFileName: string; AIndentation: Integer = 4; AWriteBOM: boolean = False; ATrailingLineBreak: boolean = False);
+    /// <summary>Parses the given JSON data string into a JSON value.</summary>
+    /// <param name="AData">The JSON data string to parse.</param>
+    /// <param name="AUseBool">Indicates whether to use boolean values for parsing. Defaults to <c>false</c>.</param>
+    /// <param name="ARaiseExc">Indicates whether to raise an exception on parsing errors. Defaults to <c>false</c>.</param>
+    procedure ParseJSONValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
+    /// <summary>Loads JSON data from a file and parses it into a JSON value.</summary>
+    /// <param name="AFileName">The name of the file to load JSON data from.</param>
+    /// <param name="AUseBool">Indicates whether to use boolean values for parsing. Defaults to <c>false</c>.</param>
+    /// <param name="ARaiseExc">Indicates whether to raise an exception on parsing errors. Defaults to <c>false</c>.</param>
+    procedure LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
+    /// <summary>Saves the JSON value to a file with optional formatting.</summary>
+    /// <param name="AFileName">The name of the file to save the JSON data to.</param>
+    /// <param name="AIndentation">The number of spaces to use for indentation. Defaults to 4.</param>
+    /// <param name="AWriteBOM">Indicates whether to write a byte order mark (BOM) at the beginning of the file. Defaults to <c>false</c>.</param>
+    /// <param name="ATrailingLineBreak">Indicates whether to add a trailing line break at the end of the file. Defaults to <c>false</c>.</param>
+    procedure SaveToFile(const AFileName: string; AIndentation: Integer = 4; AWriteBOM: Boolean = False; ATrailingLineBreak: Boolean = False);
   end;
 
   { Iterators }
@@ -111,7 +188,7 @@ type
     function GetCurrent: TRJ;
   public
     constructor Create(const [ref] AData: TRJ);
-    function MoveNext: boolean;
+    function MoveNext: Boolean;
     property Current: TRJ read GetCurrent;
   end;
 
@@ -246,9 +323,9 @@ begin
   if self = nil then
     Exit(ADefault);
   try
-    Result := AsType<T>;
+      Result := AsType<T>;
   except
-    Result := ADefault;
+      Result := ADefault;
   end;
 end;
 
@@ -310,7 +387,7 @@ begin
   end;
 end;
 
-function TRJEnumerator.MoveNext: boolean;
+function TRJEnumerator.MoveNext: Boolean;
 begin
   Inc(FIndex);
   Exit(FIndex < FPData^.Count)
@@ -415,12 +492,12 @@ begin
   Result := Value.ToFloat(0.0);
 end;
 
-class operator TRJ.Implicit(Value: boolean): TRJ;
+class operator TRJ.Implicit(Value: Boolean): TRJ;
 begin
   Result.FRoot.Data := TJSONBool.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): boolean;
+class operator TRJ.Implicit(const [ref] Value: TRJ): Boolean;
 begin
   Result := Value.ToBool(False);
 end;
@@ -450,9 +527,9 @@ begin
   Result := FRoot.Data.FindValue(FPath).ToType<Extended>(ADefault);
 end;
 
-function TRJ.ToBool(ADefault: boolean = False): boolean;
+function TRJ.ToBool(ADefault: Boolean = False): Boolean;
 begin
-  Result := FRoot.Data.FindValue(FPath).ToType<boolean>(ADefault);
+  Result := FRoot.Data.FindValue(FPath).ToType<Boolean>(ADefault);
 end;
 
 function TRJ.GetItems(const APath: string): TRJ;
@@ -542,12 +619,12 @@ begin
     Result := '';
 end;
 
-function TRJ.RootIs<T>: boolean;
+function TRJ.RootIs<T>: Boolean;
 begin
   Result := FRoot.Data is T;
 end;
 
-function TRJ.ValueIs<T>: boolean;
+function TRJ.ValueIs<T>: Boolean;
 begin
   Result := GetJSONValue is T;
 end;
@@ -573,18 +650,18 @@ begin
   end;
 end;
 
-procedure TRJ.ParseJSONValue(const AData: string; AUseBool: boolean; ARaiseExc: boolean);
+procedure TRJ.ParseJSONValue(const AData: string; AUseBool: Boolean; ARaiseExc: Boolean);
 begin
   Reset;
   FRoot.Data := TJSONValue.ParseJSONValue(AData, AUseBool, ARaiseExc);
 end;
 
-procedure TRJ.LoadFromFile(const AFileName: string; AUseBool: boolean; ARaiseExc: boolean);
+procedure TRJ.LoadFromFile(const AFileName: string; AUseBool: Boolean; ARaiseExc: Boolean);
 begin
   ParseJSONValue(TFile.ReadAllText(AFileName, TEncoding.UTF8), AUseBool, ARaiseExc);
 end;
 
-procedure TRJ.SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: boolean; ATrailingLineBreak: boolean);
+procedure TRJ.SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: Boolean; ATrailingLineBreak: Boolean);
 var
   strs: TStrings;
 begin
@@ -595,7 +672,7 @@ begin
     strs.Text := Format(AIndentation);
     strs.SaveToFile(AFileName, TEncoding.UTF8);
   finally
-    strs.Free;
+      strs.Free;
   end;
 end;
 
