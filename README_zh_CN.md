@@ -1,45 +1,44 @@
-# TRJ - JSON Simple Read and Write
+# TRJ - JSON 简单读写
 - v0.9.1
 - 2024-09-05 by gale
 - https://github.com/higale/RJSON
 
-**Languages: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md)**
+**语言版本: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md)**
 
-
-## Properties:
-- `Items[Path]` Path-based read/write, works for both Objects and Arrays.
-
+## 属性：
+- `Items[Path]` 基于路径的读写，适用于对象和数组。
+ 
         a['x.y[2].z'] := 5;
         b['[3].ok'] := false;
 
-- `Items[Index]` Array read/write.
+- `Items[Index]` 数组读写。
 
         a[3][1] := 'hello';
 
-- `Pairs[Index]` Retrieving key-value pairs under a JSONObject.
+- `Pairs[Index]` 获取 JSONObject 下的键值对。
 
         for var i := 0 to RJ.Count do
         begin
             Memo1.Lines.Add(RJ.Pairs[i].Key + '=' + RJ.Pairs[i].Format(0));
         end;
 
-- `Count` Number of entries in an Object or Array, returns 0 for other types.
-- `Index` Index of the entry in an Array, returns -1 if not an array data.
-- `Key` If it's a key-value pair data, returns the key, otherwise returns an empty string.
-- `Root` Interface to root data.
-- `Path` Path of the value.
-- `JSONValue` Contains the `TJSONValue`.
+- `Count` 对象或数组中的条目数量，其他类型返回 0。
+- `Index` 数组中的条目索引，如果不是数组数据则返回 -1。
+- `Key` 如果是键值对数据，则返回键，否则返回空字符串。
+- `Root` 根数据接口。
+- `Path` 值的路径。
+- `JSONValue` 包含的 `TJSONValue`。
 
-## Methods
-- `ToStr` Converts to a string, defaults to an empty string.
+## 方法
+- `ToStr` 转换为字符串，默认为空字符串。
 
         var str: string;
 
         str := RJ['title'];
         str := RJ['title'].ToStr;
-        str := RJ['title'].ToStr('No Title');
+        str := RJ['title'].ToStr('没有标题');
 
-- `ToInt` Converts to an integer, defaults to 0.
+- `ToInt` 转换为整数，默认为 0。
 
         var i: integer;
 
@@ -47,7 +46,7 @@
         i := RJ['num'].ToInt;
         i := RJ['num'].ToInt(-1);
 
-- `ToInt64` Converts to a 64-bit integer, defaults to 0.
+- `ToInt64` 转换为 64 位整数，默认为 0。
 
         var i64: Int64;
 
@@ -55,7 +54,7 @@
         i64 := RJ['num64'].ToInt64;
         i64 := RJ['num64'].ToInt64(-1);
 
-- `ToFloat` Converts to a floating-point number (using Extended), defaults to 0.0.
+- `ToFloat` 转换为浮点数（使用 Extended），默认为 0.0。
 
         var f: Extended;
 
@@ -63,7 +62,7 @@
         f := RJ['num'].ToFloat;
         f := RJ['num'].ToFloat(100.0);
 
-- `ToBool` Converts to Boolean, defaults to False.
+- `ToBool` 转换为布尔值，默认为 False。
 
         var b: Boolean;
 
@@ -71,37 +70,37 @@
         b := RJ['bool'].ToBool;
         b := RJ['bool'].ToBool(True);
 
-- `RootIs<T: TJSONValue>` Checks if the root is of a certain type (TJSONObject, TJSONArray, etc.).
-- `ValueIs<T: TJSONValue>` Checks if the current value is of a certain type (TJSONObject, TJSONArray, etc.).
-- `CloneJSONValue` Clones the current value, generates TJSONNull if the current value does not exist.
-- `Reset` Resets to factory settings.
-- `Format` Outputs a formatted JSON string.
+- `RootIs<T: TJSONValue>` 检查根是否为特定类型（TJSONObject、TJSONArray 等）。
+- `ValueIs<T: TJSONValue>` 检查当前值是否为特定类型（TJSONObject、TJSONArray 等）。
+- `CloneJSONValue` 克隆当前值，如果当前值不存在，则生成 TJSONNull。
+- `Reset` 重置为出厂设置。
+- `Format` 输出格式化的 JSON 字符串。
 
-        str1 := RJ.Format(2); // Indented by 2 spaces (default is 4)
-        str2 := RJ.Format(0); // Compressed format, no indentation, no line breaks
+        str1 := RJ.Format(2); // 缩进 2 个空格（默认为 4）
+        str2 := RJ.Format(0); // 压缩格式，无缩进无换行
 
-- `ParseJSONValue` Loads data from a string.
+- `ParseJSONValue` 从字符串加载数据。
 
         RJ.ParseJSONValue('{"a":1}');
 
-- `LoadFromFile` Loads data from a file.
+- `LoadFromFile` 从文件加载数据。
 
         procedure LoadFromFile(
-            const AFileName: string;   // JSON filename
-            AUseBool: boolean = False; // Whether to create TJSONBool type values when encountering true or false in JSON data
-            ARaiseExc: boolean = False // Whether to throw an exception when encountering invalid JSON data
+            const AFileName: string;   // JSON 文件名
+            AUseBool: boolean = False; // 遇到 JSON 数据中的 true 或 false 时，是否创建 TJSONBool 类型的值
+            ARaiseExc: boolean = False // 遇到无效的 JSON 数据时是否抛出异常
         );
 
-- `SaveToFile` Saves to a file.
+- `SaveToFile` 保存到文件。
 
         procedure SaveToFile(
-            const AFileName: string;            // Filename
-            AIndentation: Integer = 4;          // Number of indentation spaces, 0: no indentation, no line breaks
-            AWriteBOM: boolean = False;         // Whether to add a BOM marker to the file
-            ATrailingLineBreak: boolean = False // Whether to add an empty line at the end
+            const AFileName: string;            // 文件名
+            AIndentation: Integer = 4;          // 缩进空格数，0: 不缩进不换行
+            AWriteBOM: boolean = False;         // 文件是否添加 BOM 标记
+            ATrailingLineBreak: boolean = False // 是否在结尾添加一个空行
         );
 
-## Example:
+## 示例：
     procedure TFormMain.btnTestClick(Sender: TObject);
     var
       RJ, RJ1: TRJ;
