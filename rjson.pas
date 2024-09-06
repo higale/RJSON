@@ -1,5 +1,5 @@
 ﻿{
-  TRJ - JSON simple read and write
+  TRJ - JSON Simple Read and Write
   - v0.9.1
   - 2024-09-05 by gale
   - https://github.com/higale/RJSON
