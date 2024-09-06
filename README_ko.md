@@ -1,44 +1,44 @@
-# TRJ - JSON 簡單讀取與寫入
+# TRJ - JSON 간단 읽기 및 쓰기
 - v0.9.1
 - 2024-09-05 by gale
 - https://github.com/higale/RJSON
 
 **Languages: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md) | [日本語](README_ja.md) | [한국어](README_ko.md)**
 
-## 屬性：
-- `Items[Path]` 基於路徑的讀寫，適用於物件和陣列。
+## 속성:
+- `Items[Path]` 경로 기반 읽기/쓰기, 객체와 배열 모두 지원.
 
         a['x.y[2].z'] := 5;
         b['[3].ok'] := false;
 
-- `Items[Index]` 陣列讀寫。
+- `Items[Index]` 배열 읽기/쓰기.
 
         a[3][1] := 'hello';
 
-- `Pairs[Index]` 獲取 JSONObject 下的鍵值對。
+- `Pairs[Index]` JSONObject 아래의 키-값 쌍 검색.
 
         for var i := 0 to RJ.Count do
         begin
             Memo1.Lines.Add(RJ.Pairs[i].Key + '=' + RJ.Pairs[i].Format(0));
         end;
 
-- `Count` 物件或陣列中的條目數量，其他類型返回 0。
-- `Index` 陣列中的條目索引，如果不是陣列數據則返回 -1。
-- `Key` 如果是鍵值對數據，則返回鍵，否則返回空字符串。
-- `Root` 根數據接口。
-- `Path` 值的路徑。
-- `JSONValue` 包含的 `TJSONValue`。
+- `Count` 객체 또는 배열 내 항목 수, 다른 유형은 0 반환.
+- `Index` 배열 내 항목의 인덱스, 배열 데이터가 아닌 경우 -1 반환.
+- `Key` 키-값 쌍 데이터일 경우 키 반환, 그렇지 않으면 빈 문자열 반환.
+- `Root` 루트 데이터에 대한 인터페이스.
+- `Path` 값의 경로.
+- `JSONValue` `TJSONValue`를 포함.
 
-## 方法
-- `ToStr` 轉換為字符串，默認為空字符串。
+## 메서드
+- `ToStr` 문자열로 변환, 기본값은 빈 문자열.
 
         var str: string;
 
         str := RJ['title'];
         str := RJ['title'].ToStr;
-        str := RJ['title'].ToStr('沒有標題');
+        str := RJ['title'].ToStr('No Title');
 
-- `ToInt` 轉換為整數，默認為 0。
+- `ToInt` 정수로 변환, 기본값은 0.
 
         var i: integer;
 
@@ -46,7 +46,7 @@
         i := RJ['num'].ToInt;
         i := RJ['num'].ToInt(-1);
 
-- `ToInt64` 轉換為 64 位整數，默認為 0。
+- `ToInt64` 64비트 정수로 변환, 기본값은 0.
 
         var i64: Int64;
 
@@ -54,7 +54,7 @@
         i64 := RJ['num64'].ToInt64;
         i64 := RJ['num64'].ToInt64(-1);
 
-- `ToFloat` 轉換為浮點數（使用 Extended），默認為 0.0。
+- `ToFloat` 부동 소수점 수로 변환 (Extended 사용), 기본값은 0.0.
 
         var f: Extended;
 
@@ -62,7 +62,7 @@
         f := RJ['num'].ToFloat;
         f := RJ['num'].ToFloat(100.0);
 
-- `ToBool` 轉換為布林值，默認為 False。
+- `ToBool` 부울로 변환, 기본값은 False.
 
         var b: Boolean;
 
@@ -70,37 +70,37 @@
         b := RJ['bool'].ToBool;
         b := RJ['bool'].ToBool(True);
 
-- `RootIs<T: TJSONValue>` 檢查根是否為特定類型（TJSONObject、TJSONArray 等）。
-- `ValueIs<T: TJSONValue>` 檢查當前值是否為特定類型（TJSONObject、TJSONArray 等）。
-- `CloneJSONValue` 克隆當前值，如果當前值不存在，則生成 TJSONNull。
-- `Reset` 重置為出廠設置。
-- `Format` 輸出格式化的 JSON 字符串。
+- `RootIs<T: TJSONValue>` 루트가 특정 유형인지 확인 (TJSONObject, TJSONArray 등).
+- `ValueIs<T: TJSONValue>` 현재 값이 특정 유형인지 확인 (TJSONObject, TJSONArray 등).
+- `CloneJSONValue` 현재 값을 클론, 현재 값이 없는 경우 TJSONNull 생성.
+- `Reset` 공장 설정으로 초기화.
+- `Format` 형식화된 JSON 문자열 출력.
 
-        str1 := RJ.Format(2); // 縮進 2 個空格（默認為 4）
-        str2 := RJ.Format(0); // 壓縮格式，無縮進無換行
+        str1 := RJ.Format(2); // 2칸 들여쓰기 (기본값은 4칸)
+        str2 := RJ.Format(0); // 압축 형식, 들여쓰기 없음, 줄 바꿈 없음
 
-- `ParseJSONValue` 從字符串加載數據。
+- `ParseJSONValue` 문자열에서 데이터 로드.
 
         RJ.ParseJSONValue('{"a":1}');
 
-- `LoadFromFile` 從文件加載數據。
+- `LoadFromFile` 파일에서 데이터 로드.
 
         procedure LoadFromFile(
-            const AFileName: string;   // JSON 文件名
-            AUseBool: boolean = False; // 遇到 JSON 數據中的 true 或 false 時，是否創建 TJSONBool 類型的值
-            ARaiseExc: boolean = False // 遇到無效的 JSON 數據時是否拋出異常
+            const AFileName: string;   // JSON 파일 이름
+            AUseBool: boolean = False; // JSON 데이터에서 true 또는 false를 만나면 TJSONBool 타입 값 생성 여부
+            ARaiseExc: boolean = False // 유효하지 않은 JSON 데이터를 만났을 때 예외 발생 여부
         );
 
-- `SaveToFile` 保存到文件。
+- `SaveToFile` 파일에 저장.
 
         procedure SaveToFile(
-            const AFileName: string;            // 文件名
-            AIndentation: Integer = 4;          // 縮進空格數，0: 不縮進不換行
-            AWriteBOM: boolean = False;         // 文件是否添加 BOM 標記
-            ATrailingLineBreak: boolean = False // 是否在結尾添加一個空行
+            const AFileName: string;            // 파일 이름
+            AIndentation: Integer = 4;          // 들여쓰기 칸 수, 0: 들여쓰기 없음, 줄 바꿈 없음
+            AWriteBOM: boolean = False;         // 파일에 BOM 마커 추가 여부
+            ATrailingLineBreak: boolean = False // 마지막에 빈 줄 추가 여부
         );
 
-## 範例：
+## 예제:
     procedure TFormMain.btnTestClick(Sender: TObject);
     var
       RJ, RJ1: TRJ;

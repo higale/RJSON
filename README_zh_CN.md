@@ -3,7 +3,7 @@
 - 2024-09-05 by gale
 - https://github.com/higale/RJSON
 
-**语言版本: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md)**
+**Languages: [English](README.md) | [简体中文](README_zh_CN.md) | [繁體中文](README_zh_TW.md) | [日本語](README_ja.md) | [한국어](README_ko.md)**
 
 ## 属性：
 - `Items[Path]` 基于路径的读写，适用于对象和数组。
