@@ -58,7 +58,7 @@ type
     function GetRootRefCount: Integer;
     function ForceRootJValue(const APath: string): TJValue;
     function LinkPath(const ALeft, ARight: string): string;
-    function GeTJValue: TJValue; inline;
+    function GetJValue: TJValue; inline;
     function GetItems(const APath: TRPath): TRJ;
     function GetPairs(AIndex: Integer): TRJ;
     procedure SetValue(const [ref] AValue: TRJ);
@@ -113,7 +113,7 @@ type
     property RootRefCount: Integer read GetRootRefCount;
     property Root: TRJ read GetRoot;
     property Path: string read FPath;
-    property JValue: TJValue read GeTJValue;
+    property JValue: TJValue read GetJValue;
 
     function CloneJValue: TJValue;
     function IsRoot: boolean; inline;
@@ -422,7 +422,7 @@ begin
     Result := ALeft + '.' + ARight;
 end;
 
-function TRJ.GeTJValue: TJValue;
+function TRJ.GetJValue: TJValue;
 begin
   Result := FIRoot.Data.FindValue(FPath);
 end;
