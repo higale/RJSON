@@ -54,25 +54,28 @@
 - `Format` Outputs a formatted JSON string without encoding.
 - `ParseJSONValue` Loads data from a string.
 - `LoadFromFile` Loads data from a file.
-- `SaveToFile` Saves to a file.
-
-        // Saves formatted JSON data to a file.
-        procedure SaveToFile(
-            const AFileName: string; // File name.
-            AIndentation: Integer;   // Number of spaces for indentation.
-            AWriteBOM: boolean = False // Whether to write BOM marker; defaults to False.
-        );
-
-        // Saves encoded JSON data to a file.
-        procedure SaveToFile(
-            const AFileName: string;
-            AEncodeBelow32: boolean = true; // Whether to encode ASCII characters less than 32; defaults to True.
-            AEncodeAbove127: boolean = true; // Whether to encode ASCII characters greater than 127; defaults to True.
-            AWriteBOM: boolean = False // Whether to write BOM marker; defaults to False.
-        );
+- `SaveToFile` Saves formatted JSON data to a file.
+```pascal
+procedure SaveToFile(
+    const AFileName: string; // File name.
+    AIndentation: Integer;   // Number of spaces for indentation.
+    AWriteBOM: boolean = False // Whether to write BOM marker, default is False.
+);
+```
+- `SaveToFile` Saves encoded JSON data to a file.
+```pascal
+procedure SaveToFile(
+    const AFileName: string;
+    AEncodeBelow32: boolean = true; // Whether to encode ASCII characters below 32, default is True.
+    AEncodeAbove127: boolean = true; // Whether to encode ASCII characters above 127, default is True.
+    AWriteBOM: boolean = False // Whether to write BOM marker, default is False.
+);
+```
 
 ## Example:
 ```pascal
+uses rjson;
+
 procedure TFormMain.btnTestClick(Sender: TObject);
 var
   RJ, RJ1: TRJ;
@@ -83,29 +86,42 @@ begin
   RJ.S['title2'] := '世界，你好！';
   RJ.Items['title3'] := 'Good';
   RJ['a.num'] := 1;
-  RJ['a.hah'] := false;
+  RJ['a.haha'] := false;
   RJ['b[2]'] := 505;
   RJ['b[0]'] := 'first';
   RJ['good'] := True;
+
   RJ1 := RJ['c'];
   RJ1['c1'] := 1.1;
   RJ1['c2[2]'] := 2.33;
+
   with RJ['x'] do
   begin
-    items[1] := 100;
-    items[2] := '202';
+    Items[1] := 100;
+    Items[2] := '202';
   end;
+
   with RJ['y'] do
   begin
-    items['ya'] := 'y1';
-    items['yb'] := -2;
+    Items['ya'] := 'y1';
+    Items['yb'] := -2;
   end;
-  Memo1.Text := RJ.Format;
+
+  Memo1.Lines.Add('ToString:');
+  Memo1.Lines.Add(RJ.ToString);
+  Memo1.Lines.Add('ToJSON:');
+  Memo1.Lines.Add(RJ.ToJSON);
+  Memo1.Lines.Add('Format:');
+  Memo1.Lines.Add(RJ.Format);
+
   Memo1.Lines.Add('-----------------------------------------------------------');
+
   fTemp := RJ['c.c2[3]'];
+  Memo1.Lines.Add('fTemp = ' + fTemp.ToString);
+
+  fTemp := RJ['c.none[3]'].ToFloat(-100);
   Memo1.Lines.Add('fTemp:' + fTemp.ToString);
-  fTemp := RJ['c.c3[3]'].ToFloat(-100);
-  Memo1.Lines.Add('fTemp:' + fTemp.ToString);
+
   Memo1.Lines.Add(RJ['a.num'].ToStr('a.num not exist'));
   Memo1.Lines.Add(RJ['none'].ToFloat(-1).ToString);
   Memo1.Lines.Add(RJ['none.a3'].ToStr('none.a3 not exist'));

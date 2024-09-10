@@ -54,26 +54,28 @@
 - `Format` 输出格式化的 JSON 字符串，不做编码。
 - `ParseJSONValue` 从字符串加载数据。
 - `LoadFromFile` 从文件加载数据。
-- `SaveToFile` 保存到文件。
-
-        // 将格式化过的JSON数据保存到文件。
-        procedure SaveToFile(
-            const AFileName: string; // 文件名。
-            AIndentation: Integer;   // 缩进的空格数。
-            AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
-        );
-
-        //以编码过的JSON数据保存到文件。
-        procedure SaveToFile(
-            const AFileName: string;
-            AEncodeBelow32: boolean = true; // 是否编码ASCII码小于32的字符，默认为True。
-            AEncodeAbove127: boolean = true; // 是否编码ASCII码大于127的字符，默认为True。
-            AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
-        );
-
+- `SaveToFile` 将格式化过的JSON数据保存到文件。
+```pascal
+procedure SaveToFile(
+    const AFileName: string; // 文件名。
+    AIndentation: Integer;   // 缩进的空格数。
+    AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
+);
+```
+- `SaveToFile` 将编码过的JSON数据保存到文件。
+```pascal
+procedure SaveToFile(
+    const AFileName: string;
+    AEncodeBelow32: boolean = true; // 是否编码ASCII码小于32的字符，默认为True。
+    AEncodeAbove127: boolean = true; // 是否编码ASCII码大于127的字符，默认为True。
+    AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
+);
+```
 
 ## 示例：
 ```pascal
+uses rjson;
+
 procedure TFormMain.btnTestClick(Sender: TObject);
 var
   RJ, RJ1: TRJ;
@@ -84,23 +86,27 @@ begin
   RJ.S['title2'] := '世界，你好！';
   RJ.Items['title3'] := 'Good';
   RJ['a.num'] := 1;
-  RJ['a.hah'] := false;
+  RJ['a.haha'] := false;
   RJ['b[2]'] := 505;
   RJ['b[0]'] := 'first';
   RJ['good'] := True;
+
   RJ1 := RJ['c'];
   RJ1['c1'] := 1.1;
   RJ1['c2[2]'] := 2.33;
+
   with RJ['x'] do
   begin
     items[1] := 100;
     items[2] := '202';
   end;
+
   with RJ['y'] do
   begin
     items['ya'] := 'y1';
     items['yb'] := -2;
   end;
+
   Memo1.Text := RJ.Format;
   Memo1.Lines.Add('-----------------------------------------------------------');
   fTemp := RJ['c.c2[3]'];

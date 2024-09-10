@@ -1,7 +1,7 @@
 ﻿{
   TRJ - JSON Simple Read and Write
-  - v0.9.4
-  - 2024-09-09 by gale
+  - v0.9.5
+  - 2024-09-10 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
