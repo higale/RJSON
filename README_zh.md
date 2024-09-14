@@ -1,4 +1,4 @@
-﻿# TRJ - JSON Simple Read and Write
+﻿# TRJSON - JSON Simple Read and Write
 - by gale
 - https://github.com/higale/RJSON
 
@@ -78,7 +78,7 @@ uses rjson;
 
 procedure TFormMain.btnTestClick(Sender: TObject);
 var
-  RJ, RJ1: TRJ;
+  RJ, RJ1: TRJSON;
   fTemp: Extended;
 begin
   Memo1.Lines.Clear;
@@ -121,7 +121,7 @@ end;
 
 procedure TFormMain.btnOpenClick(Sender: TObject);
 var
-  RJ: TRJ;
+  RJ: TRJSON;
   strTmp: string;
 begin
   RJ.LoadFromFile('test.json');

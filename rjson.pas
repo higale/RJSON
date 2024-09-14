@@ -1,7 +1,7 @@
 ﻿{
-  TRJ - JSON Simple Read and Write
-  - v0.9.5
-  - 2024-09-10 by gale
+  TRJSON - JSON Simple Read and Write
+  - v0.9.7
+  - 2024-09-14 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -18,6 +18,8 @@ type
   TJString = TJSONString;
   TJNumber = TJSONNumber;
   TJBool = TJSONBool;
+  TJTrue = TJSONTrue;
+  TJFalse = TJSONFalse;
   TJNull = TJSONNull;
   TJVType = type of TJValue;
 
@@ -29,7 +31,7 @@ type
     property Data: TJValue read GetData write SetData;
   end;
 
-  TRJRoot = class(TInterfacedObject, IRJRoot)
+  TRJSONRoot = class(TInterfacedObject, IRJRoot)
   private
     FData: TJValue;
     function GetData: TJValue;
@@ -49,9 +51,9 @@ type
     class operator Implicit(const [ref] Value: TRPath): string;
   end;
 
-  TRJEnumerator = class;
+  TRJSONEnumerator = class;
 
-  TRJ = record
+  TRJSON = record
   private
     FIRoot: IRJRoot;
     FPath: string;
@@ -59,10 +61,10 @@ type
     function ForceRootJValue(const APath: string): TJValue;
     function LinkPath(const ALeft, ARight: string): string;
     function GetJValue: TJValue; inline;
-    function GetItems(const APath: TRPath): TRJ;
-    function GetPairs(AIndex: Integer): TRJ;
-    procedure SetValue(const [ref] AValue: TRJ);
-    procedure SetItems(const APath: TRPath; const [ref] AValue: TRJ);
+    function GetItems(const APath: TRPath): TRJSON;
+    function GetPairs(AIndex: Integer): TRJSON;
+    procedure SetValue(const [ref] AValue: TRJSON);
+    procedure SetItems(const APath: TRPath; const [ref] AValue: TRJSON);
     function GetS(const APath: TRPath): string; overload;
     procedure SetS(const APath: TRPath; AValue: string); overload;
     function GetI(const APath: TRPath): Integer; overload;
@@ -71,111 +73,111 @@ type
     procedure SetI64(const APath: TRPath; AValue: Int64); overload;
     function GetF(const APath: TRPath): Extended; overload;
     procedure SetF(const APath: TRPath; AValue: Extended); overload;
-    function GetB(const APath: TRPath): boolean; overload;
-    procedure SetB(const APath: TRPath; AValue: boolean); overload;
+    function GetB(const APath: TRPath): Boolean; overload;
+    procedure SetB(const APath: TRPath; AValue: Boolean); overload;
     function GetCount: Integer;
     function GetIndex: Integer;
     function GetKey: string;
-    function GetRoot: TRJ;
+    function GetRoot: TRJSON;
   public
-    function GetEnumerator(): TRJEnumerator;
-    class operator Initialize(out Dest: TRJ);
-    class operator Finalize(var Dest: TRJ);
-    class operator Assign(var Dest: TRJ; const [ref] Src: TRJ);
-    class operator Implicit(const Value: string): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): string;
-    class operator Implicit(Value: Integer): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): Integer;
-    class operator Implicit(Value: Int64): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): Int64;
-    class operator Implicit(Value: Extended): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): Extended;
-    class operator Implicit(Value: boolean): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): boolean;
-    class operator Implicit(const Value: TJValue): TRJ;
-    class operator Implicit(const [ref] Value: TRJ): TJValue;
+    function GetEnumerator(): TRJSONEnumerator;
+    class operator Initialize(out Dest: TRJSON);
+    class operator Finalize(var Dest: TRJSON);
+    class operator Assign(var Dest: TRJSON; const [ref] Src: TRJSON);
+    class operator Implicit(const Value: string): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): string;
+    class operator Implicit(Value: Integer): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): Integer;
+    class operator Implicit(Value: Int64): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): Int64;
+    class operator Implicit(Value: Extended): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): Extended;
+    class operator Implicit(Value: Boolean): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): Boolean;
+    class operator Implicit(const Value: TJValue): TRJSON;
+    class operator Implicit(const [ref] Value: TRJSON): TJValue;
     function ToStr(const ADefault: string = ''): string;
     function ToInt(ADefault: Integer = 0): Integer;
     function ToInt64(ADefault: Int64 = 0): Int64;
     function ToFloat(ADefault: Extended = 0.0): Extended;
-    function ToBool(ADefault: boolean = False): boolean;
+    function ToBool(ADefault: Boolean = False): Boolean;
 
-    property Items[const APath: TRPath]: TRJ read GetItems write SetItems; default;
+    property Items[const APath: TRPath]: TRJSON read GetItems write SetItems; default;
     property S[const APath: TRPath]: string read GetS write SetS;
     property I[const APath: TRPath]: Integer read GetI write SetI;
     property I64[const APath: TRPath]: Int64 read GetI64 write SetI64;
     property F[const APath: TRPath]: Extended read GetF write SetF;
-    property B[const APath: TRPath]: boolean read GetB write SetB;
-    property Pairs[AIndex: Integer]: TRJ read GetPairs;
+    property B[const APath: TRPath]: Boolean read GetB write SetB;
+    property Pairs[AIndex: Integer]: TRJSON read GetPairs;
     property Count: Integer read GetCount;
     property Index: Integer read GetIndex;
     property Key: string read GetKey;
     property RootRefCount: Integer read GetRootRefCount;
-    property Root: TRJ read GetRoot;
+    property Root: TRJSON read GetRoot;
     property Path: string read FPath;
     property JValue: TJValue read GetJValue;
 
     function CloneJValue: TJValue;
-    function IsRoot: boolean; inline;
-    function RootIsJObject: boolean; inline;
-    function RootIsJArray: boolean; inline;
-    function IsJObject: boolean;
-    function IsJArray: boolean;
-    function IsJString: boolean;
-    function IsJNumber: boolean;
-    function IsJBool: boolean;
-    function IsJNull: boolean;
-    function IsNil: boolean;
+    function IsRoot: Boolean; inline;
+    function RootIsJObject: Boolean; inline;
+    function RootIsJArray: Boolean; inline;
+    function IsJObject: Boolean;
+    function IsJArray: Boolean;
+    function IsJString: Boolean;
+    function IsJNumber: Boolean;
+    function IsJBool: Boolean;
+    function IsJNull: Boolean;
+    function IsNil: Boolean;
     procedure Reset;
     function ToString: string;
-    function ToJSON(AEncodeBelow32: boolean = true; AEncodeAbove127: boolean = true): string;
+    function ToJSON(AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true): string;
     function Format(AIndentation: Integer = 4): string;
-    procedure ParseJValue(const AData: string; AUseBool: boolean = False; ARaiseExc: boolean = False);
-    procedure LoadFromFile(const AFileName: string; AUseBool: boolean = False; ARaiseExc: boolean = False);
-    procedure SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: boolean = False); overload;
-    procedure SaveToFile(const AFileName: string; AEncodeBelow32: boolean = true; AEncodeAbove127: boolean = true; AWriteBOM: boolean = False); overload;
+    function ParseJValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
+    function LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
+    procedure SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: Boolean = False); overload;
+    procedure SaveToFile(const AFileName: string; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true; AWriteBOM: Boolean = False); overload;
   end;
 
   { Iterators }
-  TRJEnumerator = class
+  TRJSONEnumerator = class
   private
-    FPData: ^TRJ;
+    FPData: ^TRJSON;
     FIndex: Integer;
-    function GetCurrent: TRJ;
+    function GetCurrent: TRJSON;
   public
-    constructor Create(const [ref] AData: TRJ);
-    function MoveNext: boolean;
-    property Current: TRJ read GetCurrent;
+    constructor Create(const [ref] AData: TRJSON);
+    function MoveNext: Boolean;
+    property Current: TRJSON read GetCurrent;
   end;
 
 implementation
 
 { ============================================================================ }
-{ TRJRoot }
+{ TRJSONRoot }
 
-constructor TRJRoot.Create;
+constructor TRJSONRoot.Create;
 begin
   inherited;
   FData := nil;
 end;
 
-destructor TRJRoot.Destroy;
+destructor TRJSONRoot.Destroy;
 begin
   FData.Free;
   inherited;
 end;
 
-function TRJRoot.GetData: TJValue;
+function TRJSONRoot.GetData: TJValue;
 begin
   Result := FData;
 end;
 
-procedure TRJRoot.SetData(const AValue: TJValue);
+procedure TRJSONRoot.SetData(const AValue: TJValue);
 begin
   FData := AValue;
 end;
 
-function TRJRoot.ForceData(AType: TJVType): TJValue;
+function TRJSONRoot.ForceData(AType: TJVType): TJValue;
 begin
   if not(FData is AType) then
   begin
@@ -185,7 +187,7 @@ begin
   Result := FData;
 end;
 
-{ TRJRoot }
+{ TRJSONRoot }
 { ============================================================================ }
 { TJValueHelper }
 
@@ -342,22 +344,22 @@ end;
 
 { TRPath }
 { ============================================================================ }
-{ TRJEnumerator }
+{ TRJSONEnumerator }
 
-constructor TRJEnumerator.Create(const [ref] AData: TRJ);
+constructor TRJSONEnumerator.Create(const [ref] AData: TRJSON);
 begin
   inherited Create;
   FPData := @AData;
   FIndex := -1;
 end;
 
-function TRJEnumerator.GetCurrent: TRJ;
+function TRJSONEnumerator.GetCurrent: TRJSON;
 var
   jvTmp: TJValue;
 begin
   Result.Reset;
   Result.FIRoot := FPData^.FIRoot;
-  jvTmp := FPData^.GeTJValue;
+  jvTmp := FPData^.GetJValue;
   if jvTmp is TJObject then
   begin
     if FPData^.FPath = '' then
@@ -371,38 +373,38 @@ begin
   end;
 end;
 
-function TRJEnumerator.MoveNext: boolean;
+function TRJSONEnumerator.MoveNext: Boolean;
 begin
   Inc(FIndex);
   Exit(FIndex < FPData^.Count)
 end;
 
-{ TRJEnumerator }
+{ TRJSONEnumerator }
 { ============================================================================ }
-{ TRJ }
+{ TRJSON }
 
-function TRJ.GetEnumerator(): TRJEnumerator;
+function TRJSON.GetEnumerator(): TRJSONEnumerator;
 begin
-  Result := TRJEnumerator.Create(self);
+  Result := TRJSONEnumerator.Create(self);
 end;
 
-class operator TRJ.Initialize(out Dest: TRJ);
+class operator TRJSON.Initialize(out Dest: TRJSON);
 begin
-  Dest.FIRoot := TRJRoot.Create;
+  Dest.FIRoot := TRJSONRoot.Create;
   Dest.FPath := '';
 end;
 
-class operator TRJ.Finalize(var Dest: TRJ);
+class operator TRJSON.Finalize(var Dest: TRJSON);
 begin
   Dest.FIRoot := nil;
 end;
 
-function TRJ.GetRootRefCount: Integer;
+function TRJSON.GetRootRefCount: Integer;
 begin
-  Result := (FIRoot as TRJRoot).RefCount;
+  Result := (FIRoot as TRJSONRoot).RefCount;
 end;
 
-function TRJ.ForceRootJValue(const APath: string): TJValue;
+function TRJSON.ForceRootJValue(const APath: string): TJValue;
 begin
   if APath.StartsWith('[') then
     Result := FIRoot.ForceData(TJArray)
@@ -410,7 +412,7 @@ begin
     Result := FIRoot.ForceData(TJObject);
 end;
 
-function TRJ.LinkPath(const ALeft, ARight: string): string;
+function TRJSON.LinkPath(const ALeft, ARight: string): string;
 begin
   if ALeft.IsEmpty then
     Result := ARight
@@ -422,21 +424,21 @@ begin
     Result := ALeft + '.' + ARight;
 end;
 
-function TRJ.GetJValue: TJValue;
+function TRJSON.GetJValue: TJValue;
 begin
   Result := FIRoot.Data.FindValue(FPath);
 end;
 
-function TRJ.CloneJValue: TJValue;
+function TRJSON.CloneJValue: TJValue;
 begin
-  Result := GeTJValue;
+  Result := GetJValue;
   if Result <> nil then
     Result := Result.Clone as TJValue
   else
     Result := TJNull.Create;
 end;
 
-class operator TRJ.Assign(var Dest: TRJ; const [ref] Src: TRJ);
+class operator TRJSON.Assign(var Dest: TRJSON; const [ref] Src: TRJSON);
 begin
   if Dest.FPath.IsEmpty then
   begin
@@ -449,113 +451,113 @@ begin
   end;
 end;
 
-class operator TRJ.Implicit(const Value: string): TRJ;
+class operator TRJSON.Implicit(const Value: string): TRJSON;
 begin
   Result.FIRoot.Data := TJString.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): string;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): string;
 begin
   Result := Value.ToStr('');
 end;
 
-class operator TRJ.Implicit(Value: Integer): TRJ;
+class operator TRJSON.Implicit(Value: Integer): TRJSON;
 begin
   Result.FIRoot.Data := TJNumber.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): Integer;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): Integer;
 begin
   Result := Value.ToInt(0);
 end;
 
-class operator TRJ.Implicit(Value: Int64): TRJ;
+class operator TRJSON.Implicit(Value: Int64): TRJSON;
 begin
   Result.FIRoot.Data := TJNumber.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): Int64;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): Int64;
 begin
   Result := Value.ToInt64(0);
 end;
 
-class operator TRJ.Implicit(Value: Extended): TRJ;
+class operator TRJSON.Implicit(Value: Extended): TRJSON;
 begin
   Result.FIRoot.Data := TJNumber.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): Extended;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): Extended;
 begin
   Result := Value.ToFloat(0.0);
 end;
 
-class operator TRJ.Implicit(Value: boolean): TRJ;
+class operator TRJSON.Implicit(Value: Boolean): TRJSON;
 begin
   Result.FIRoot.Data := TJBool.Create(Value);
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): boolean;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): Boolean;
 begin
   Result := Value.ToBool(False);
 end;
 
-class operator TRJ.Implicit(const Value: TJValue): TRJ;
+class operator TRJSON.Implicit(const Value: TJValue): TRJSON;
 begin
   Result.FIRoot.Data := Value;
 end;
 
-class operator TRJ.Implicit(const [ref] Value: TRJ): TJValue;
+class operator TRJSON.Implicit(const [ref] Value: TRJSON): TJValue;
 begin
-  Result := Value.GeTJValue;
+  Result := Value.GetJValue;
 end;
 
-function TRJ.ToStr(const ADefault: string): string;
+function TRJSON.ToStr(const ADefault: string): string;
 begin
   Result := FIRoot.Data.FindValue(FPath).ToType<string>(ADefault);
 end;
 
-function TRJ.ToInt(ADefault: Integer = 0): Integer;
+function TRJSON.ToInt(ADefault: Integer = 0): Integer;
 begin
   Result := FIRoot.Data.FindValue(FPath).ToType<Integer>(ADefault);
 end;
 
-function TRJ.ToInt64(ADefault: Int64 = 0): Int64;
+function TRJSON.ToInt64(ADefault: Int64 = 0): Int64;
 begin
   Result := FIRoot.Data.FindValue(FPath).ToType<Int64>(ADefault);
 end;
 
-function TRJ.ToFloat(ADefault: Extended = 0.0): Extended;
+function TRJSON.ToFloat(ADefault: Extended = 0.0): Extended;
 begin
   Result := FIRoot.Data.FindValue(FPath).ToType<Extended>(ADefault);
 end;
 
-function TRJ.ToBool(ADefault: boolean = False): boolean;
+function TRJSON.ToBool(ADefault: Boolean = False): Boolean;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<boolean>(ADefault);
+  Result := FIRoot.Data.FindValue(FPath).ToType<Boolean>(ADefault);
 end;
 
-function TRJ.GetItems(const APath: TRPath): TRJ;
+function TRJSON.GetItems(const APath: TRPath): TRJSON;
 begin
   Result.FIRoot := FIRoot;
   Result.FPath := LinkPath(FPath, APath);
 end;
 
-function TRJ.GetPairs(AIndex: Integer): TRJ;
+function TRJSON.GetPairs(AIndex: Integer): TRJSON;
 var
   jvTmp: TJValue;
 begin
-  jvTmp := GeTJValue;
+  jvTmp := GetJValue;
   if (jvTmp is TJObject) then
     Result := GetItems(TJObject(jvTmp).Pairs[AIndex].JsonString.Value);
 end;
 
-procedure TRJ.SetValue(const [ref] AValue: TRJ);
+procedure TRJSON.SetValue(const [ref] AValue: TRJSON);
 var
   LValue: TJValue;
 begin
 {$IFDEF DEBUG}
   if FPath.IsEmpty then
-    raise Exception.Create(' TRJ.SetValue: Path is empty');
+    raise Exception.Create(' TRJSON.SetValue: Path is empty');
 {$ENDIF}
   LValue := AValue.CloneJValue;
   try
@@ -569,16 +571,16 @@ begin
   end;
 end;
 
-procedure TRJ.SetItems(const APath: TRPath; const [ref] AValue: TRJ);
+procedure TRJSON.SetItems(const APath: TRPath; const [ref] AValue: TRJSON);
 var
-  tmp: TRJ;
+  tmp: TRJSON;
 begin
   tmp.FIRoot := FIRoot;
   tmp.FPath := LinkPath(FPath, APath);
   tmp.SetValue(AValue)
 end;
 
-function TRJ.GetS(const APath: TRPath): string;
+function TRJSON.GetS(const APath: TRPath): string;
 var
   LPath: string;
 begin
@@ -586,7 +588,7 @@ begin
   Result := ForceRootJValue(LPath).FindValue(LPath).ToType<string>('');
 end;
 
-procedure TRJ.SetS(const APath: TRPath; AValue: string);
+procedure TRJSON.SetS(const APath: TRPath; AValue: string);
 var
   LPath: string;
 begin
@@ -594,7 +596,7 @@ begin
   ForceRootJValue(LPath).TrySetValue(LPath, TJString.Create(AValue));
 end;
 
-function TRJ.GetI(const APath: TRPath): Integer;
+function TRJSON.GetI(const APath: TRPath): Integer;
 var
   LPath: string;
 begin
@@ -602,7 +604,7 @@ begin
   Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Integer>(0);
 end;
 
-procedure TRJ.SetI(const APath: TRPath; AValue: Integer);
+procedure TRJSON.SetI(const APath: TRPath; AValue: Integer);
 var
   LPath: string;
 begin
@@ -610,7 +612,7 @@ begin
   ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
 end;
 
-function TRJ.GetI64(const APath: TRPath): Int64;
+function TRJSON.GetI64(const APath: TRPath): Int64;
 var
   LPath: string;
 begin
@@ -618,7 +620,7 @@ begin
   Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Int64>(0);
 end;
 
-procedure TRJ.SetI64(const APath: TRPath; AValue: Int64);
+procedure TRJSON.SetI64(const APath: TRPath; AValue: Int64);
 var
   LPath: string;
 begin
@@ -626,7 +628,7 @@ begin
   ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
 end;
 
-function TRJ.GetF(const APath: TRPath): Extended;
+function TRJSON.GetF(const APath: TRPath): Extended;
 var
   LPath: string;
 begin
@@ -634,7 +636,7 @@ begin
   Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Extended>(0.0);
 end;
 
-procedure TRJ.SetF(const APath: TRPath; AValue: Extended);
+procedure TRJSON.SetF(const APath: TRPath; AValue: Extended);
 var
   LPath: string;
 begin
@@ -642,15 +644,15 @@ begin
   ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
 end;
 
-function TRJ.GetB(const APath: TRPath): boolean;
+function TRJSON.GetB(const APath: TRPath): Boolean;
 var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<boolean>(False);
+  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Boolean>(False);
 end;
 
-procedure TRJ.SetB(const APath: TRPath; AValue: boolean);
+procedure TRJSON.SetB(const APath: TRPath; AValue: Boolean);
 var
   LPath: string;
 begin
@@ -658,11 +660,11 @@ begin
   ForceRootJValue(LPath).TrySetValue(LPath, TJBool.Create(AValue));
 end;
 
-function TRJ.GetCount: Integer;
+function TRJSON.GetCount: Integer;
 var
   jvTemp: TJValue;
 begin
-  jvTemp := GeTJValue;
+  jvTemp := GetJValue;
   if jvTemp is TJArray then
     Result := TJArray(jvTemp).Count
   else if jvTemp is TJObject then
@@ -671,7 +673,7 @@ begin
     Result := 0;
 end;
 
-function TRJ.GetIndex: Integer;
+function TRJSON.GetIndex: Integer;
 var
   strTmp: string;
 begin
@@ -681,82 +683,82 @@ begin
     Result := StrToIntDef(strTmp.TrimRight([']']), -1);
 end;
 
-function TRJ.GetKey: string;
+function TRJSON.GetKey: string;
 begin
   Result := FPath.Substring(FPath.LastIndexOf('.') + 1);
   if Result.EndsWith(']') then
     Result := '';
 end;
 
-function TRJ.GetRoot: TRJ;
+function TRJSON.GetRoot: TRJSON;
 begin
   Result.FIRoot := FIRoot;
   // Result.FPath := '';
 end;
 
-function TRJ.IsRoot: boolean;
+function TRJSON.IsRoot: Boolean;
 begin
   Result := FPath.IsEmpty;
 end;
 
-function TRJ.RootIsJObject: boolean;
+function TRJSON.RootIsJObject: Boolean;
 begin
   Result := FIRoot.Data is TJObject;
 end;
 
-function TRJ.RootIsJArray: boolean;
+function TRJSON.RootIsJArray: Boolean;
 begin
   Result := FIRoot.Data is TJArray;
 end;
 
-function TRJ.IsJObject: boolean;
+function TRJSON.IsJObject: Boolean;
 begin
-  Result := GeTJValue is TJObject;
+  Result := GetJValue is TJObject;
 end;
 
-function TRJ.IsJArray: boolean;
+function TRJSON.IsJArray: Boolean;
 begin
-  Result := GeTJValue is TJArray;
+  Result := GetJValue is TJArray;
 end;
 
-function TRJ.IsJString: boolean;
+function TRJSON.IsJString: Boolean;
 begin
-  Result := GeTJValue is TJString;
+  Result := GetJValue is TJString;
 end;
 
-function TRJ.IsJNumber: boolean;
+function TRJSON.IsJNumber: Boolean;
 begin
-  Result := GeTJValue is TJNumber;
+  Result := GetJValue is TJNumber;
 end;
 
-function TRJ.IsJBool: boolean;
+function TRJSON.IsJBool: Boolean;
 begin
-  Result := GeTJValue is TJBool;
+  Result := GetJValue is TJBool;
 end;
 
-function TRJ.IsJNull: boolean;
+function TRJSON.IsJNull: Boolean;
 begin
-  Result := GeTJValue is TJNull;
+  Result := GetJValue is TJNull;
 end;
 
-function TRJ.IsNil: boolean;
+function TRJSON.IsNil: Boolean;
 begin
-  Result := GeTJValue = nil;
+  Result := GetJValue = nil;
 end;
 
-procedure TRJ.Reset;
+procedure TRJSON.Reset;
 begin
-  FIRoot := TRJRoot.Create;
+  FIRoot := TRJSONRoot.Create;
   FPath := '';
 end;
 
-function TRJ.ToJSON(AEncodeBelow32: boolean = true; AEncodeAbove127: boolean = true): string;
+function TRJSON.ToJSON(AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true): string;
 var
   LValue: TJValue;
   Options: TJSONAncestor.TJSONOutputOptions;
 begin
   Result := '';
-  LValue := GeTJValue;
+  LValue := GetJValue;
   if LValue <> nil then
   begin
     Options := [];
@@ -768,33 +770,45 @@ begin
   end;
 end;
 
-function TRJ.ToString: string;
+function TRJSON.ToString: string;
 begin
   Result := ToJSON(False, False);
 end;
 
-function TRJ.Format(AIndentation: Integer): string;
+function TRJSON.Format(AIndentation: Integer): string;
 var
   LValue: TJValue;
 begin
   Result := '';
-  LValue := GeTJValue;
+  LValue := GetJValue;
   if LValue <> nil then
     Result := LValue.Format(AIndentation)
 end;
 
-procedure TRJ.ParseJValue(const AData: string; AUseBool: boolean; ARaiseExc: boolean);
+function TRJSON.ParseJValue(const AData: string; AUseBool: Boolean; ARaiseExc: Boolean): Boolean;
 begin
   Reset;
   FIRoot.Data := TJValue.ParseJSONValue(AData, AUseBool, ARaiseExc);
+  Result := FIRoot.Data <> nil;
 end;
 
-procedure TRJ.LoadFromFile(const AFileName: string; AUseBool: boolean; ARaiseExc: boolean);
+function TRJSON.LoadFromFile(const AFileName: string; AUseBool: Boolean; ARaiseExc: Boolean): Boolean;
 begin
-  ParseJValue(TFile.ReadAllText(AFileName, TEncoding.UTF8), AUseBool, ARaiseExc);
+  Result := False;
+  Reset;
+  try
+    FIRoot.Data := TJValue.ParseJSONValue(TFile.ReadAllText(AFileName, TEncoding.UTF8), AUseBool, ARaiseExc);
+    Result := FIRoot.Data <> nil;
+  except
+    on E: Exception do
+    begin
+      if ARaiseExc then
+        raise Exception.Create(E.Message);
+    end;
+  end;
 end;
 
-procedure TRJ.SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: boolean);
+procedure TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: Boolean);
 var
   strs: TStrings;
 begin
@@ -808,7 +822,7 @@ begin
   end;
 end;
 
-procedure TRJ.SaveToFile(const AFileName: string; AEncodeBelow32: boolean = true; AEncodeAbove127: boolean = true; AWriteBOM: boolean = False);
+procedure TRJSON.SaveToFile(const AFileName: string; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true; AWriteBOM: Boolean = False);
 var
   strs: TStrings;
 begin
@@ -822,7 +836,7 @@ begin
   end;
 end;
 
-{ TRJ }
+{ TRJSON }
 { ============================================================================ }
 
 end.
