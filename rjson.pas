@@ -1,7 +1,7 @@
 ﻿{
   TRJSON - JSON Simple Read and Write
-  - v0.9.7
-  - 2024-09-14 by gale
+  - v0.9.9
+  - 2024-09-17 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -60,7 +60,7 @@ type
     function GetRootRefCount: Integer;
     function ForceRootJValue(const APath: string): TJValue;
     function LinkPath(const ALeft, ARight: string): string;
-    function GetJValue: TJValue; inline;
+    function GetJValue: TJValue;
     function GetItems(const APath: TRPath): TRJSON;
     function GetPairs(AIndex: Integer): TRJSON;
     procedure SetValue(const [ref] AValue: TRJSON);
@@ -76,6 +76,7 @@ type
     function GetB(const APath: TRPath): Boolean; overload;
     procedure SetB(const APath: TRPath; AValue: Boolean); overload;
     function GetCount: Integer;
+    function GetLastPath: string;
     function GetIndex: Integer;
     function GetKey: string;
     function GetRoot: TRJSON;
@@ -110,6 +111,7 @@ type
     property B[const APath: TRPath]: Boolean read GetB write SetB;
     property Pairs[AIndex: Integer]: TRJSON read GetPairs;
     property Count: Integer read GetCount;
+    property LastPath: string read GetLastPath;
     property Index: Integer read GetIndex;
     property Key: string read GetKey;
     property RootRefCount: Integer read GetRootRefCount;
@@ -131,11 +133,10 @@ type
     procedure Reset;
     function ToString: string;
     function ToJSON(AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true): string;
-    function Format(AIndentation: Integer = 4): string;
+    function Format(AIndentation: Integer = 4; AEncodeBelow32: Boolean = False; AEncodeAbove127: Boolean = False): string;
     function ParseJValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
     function LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
-    procedure SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: Boolean = False); overload;
-    procedure SaveToFile(const AFileName: string; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true; AWriteBOM: Boolean = False); overload;
+    procedure SaveToFile(const AFileName: string; AIndentation: Integer = -1; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true; AWriteBOM: Boolean = False);
   end;
 
   { Iterators }
@@ -673,6 +674,17 @@ begin
     Result := 0;
 end;
 
+function TRJSON.GetLastPath: string;
+begin
+  Result := Key;
+  if Result.IsEmpty then
+  begin
+    Result := '[' + Index.ToString + ']';
+    if Result = '[-1]' then
+      Result := '';
+  end;
+end;
+
 function TRJSON.GetIndex: Integer;
 var
   strTmp: string;
@@ -772,17 +784,68 @@ end;
 
 function TRJSON.ToString: string;
 begin
-  Result := ToJSON(False, False);
+  //Result := ToJSON(False, False);
+  Result := GetJValue.ToString;
 end;
 
-function TRJSON.Format(AIndentation: Integer): string;
+function JSONToUniCode(const AStr: string; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true): string;
+var
+  ch: char;
+  I: Integer;
+  UnicodeValue: Integer;
+  Buff: array [0 .. 5] of char;
+begin
+  for I := 1 to AStr.Length do
+  begin
+    ch := AStr[I];
+    case ch of
+      #0 .. #7, #$b, #$e .. #31, #$0080 .. High(char):
+        begin
+          UnicodeValue := Ord(ch);
+          if AEncodeBelow32 and (UnicodeValue < 32) or AEncodeAbove127 and (UnicodeValue > 127) then
+          begin
+            Buff[0] := '\';
+            Buff[1] := 'u';
+            Buff[2] := char(DecimalToHex((UnicodeValue and 61440) shr 12));
+            Buff[3] := char(DecimalToHex((UnicodeValue and 3840) shr 8));
+            Buff[4] := char(DecimalToHex((UnicodeValue and 240) shr 4));
+            Buff[5] := char(DecimalToHex((UnicodeValue and 15)));
+            Result := Result + Buff;
+          end
+          else
+          begin
+            Result := Result + ch;
+          end;
+        end
+    else
+      begin
+        Result := Result + ch;
+      end;
+    end;
+  end;
+end;
+
+function TRJSON.Format(AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean): string;
 var
   LValue: TJValue;
 begin
-  Result := '';
-  LValue := GetJValue;
-  if LValue <> nil then
-    Result := LValue.Format(AIndentation)
+  if AIndentation >= 0 then
+  begin
+    Result := '';
+    LValue := GetJValue;
+    if LValue <> nil then
+    begin
+      Result := LValue.Format(AIndentation);
+      if AEncodeBelow32 or AEncodeAbove127 then
+      begin
+        Result := JSONToUniCode(Result, AEncodeBelow32, AEncodeAbove127);
+      end;
+    end;
+  end
+  else
+  begin
+    Result := ToJSON(AEncodeBelow32, AEncodeAbove127);
+  end;
 end;
 
 function TRJSON.ParseJValue(const AData: string; AUseBool: Boolean; ARaiseExc: Boolean): Boolean;
@@ -808,28 +871,14 @@ begin
   end;
 end;
 
-procedure TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AWriteBOM: Boolean);
+procedure TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean; AWriteBOM: Boolean);
 var
   strs: TStrings;
 begin
   strs := TStringList.Create;
   try
     strs.WriteBOM := AWriteBOM;
-    strs.Text := Format(AIndentation);
-    strs.SaveToFile(AFileName, TEncoding.UTF8);
-  finally
-    strs.Free;
-  end;
-end;
-
-procedure TRJSON.SaveToFile(const AFileName: string; AEncodeBelow32: Boolean = true; AEncodeAbove127: Boolean = true; AWriteBOM: Boolean = False);
-var
-  strs: TStrings;
-begin
-  strs := TStringList.Create;
-  try
-    strs.WriteBOM := AWriteBOM;
-    strs.Text := ToJSON(AEncodeBelow32, AEncodeAbove127);
+    strs.Text := Format(AIndentation, AEncodeBelow32, AEncodeAbove127);
     strs.SaveToFile(AFileName, TEncoding.UTF8);
   finally
     strs.Free;

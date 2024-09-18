@@ -54,23 +54,7 @@
 - `Format` Outputs a formatted JSON string without encoding.
 - `ParseJSONValue` Loads data from a string.
 - `LoadFromFile` Loads data from a file.
-- `SaveToFile` Saves formatted JSON data to a file.
-```pascal
-procedure SaveToFile(
-    const AFileName: string; // File name.
-    AIndentation: Integer;   // Number of spaces for indentation.
-    AWriteBOM: boolean = False // Whether to write BOM marker, default is False.
-);
-```
-- `SaveToFile` Saves encoded JSON data to a file.
-```pascal
-procedure SaveToFile(
-    const AFileName: string;
-    AEncodeBelow32: boolean = true; // Whether to encode ASCII characters below 32, default is True.
-    AEncodeAbove127: boolean = true; // Whether to encode ASCII characters above 127, default is True.
-    AWriteBOM: boolean = False // Whether to write BOM marker, default is False.
-);
-```
+- `SaveToFile` Save JSON data to a file.
 
 ## Example:
 ```pascal

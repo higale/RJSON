@@ -54,23 +54,7 @@
 - `Format` 输出格式化的 JSON 字符串，不做编码。
 - `ParseJSONValue` 从字符串加载数据。
 - `LoadFromFile` 从文件加载数据。
-- `SaveToFile` 将格式化过的JSON数据保存到文件。
-```pascal
-procedure SaveToFile(
-    const AFileName: string; // 文件名。
-    AIndentation: Integer;   // 缩进的空格数。
-    AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
-);
-```
-- `SaveToFile` 将编码过的JSON数据保存到文件。
-```pascal
-procedure SaveToFile(
-    const AFileName: string;
-    AEncodeBelow32: boolean = true; // 是否编码ASCII码小于32的字符，默认为True。
-    AEncodeAbove127: boolean = true; // 是否编码ASCII码大于127的字符，默认为True。
-    AWriteBOM: boolean = False // 是否写入BOM标记，默认为False。
-);
-```
+- `SaveToFile` 将JSON数据保存到文件。
 
 ## 示例：
 ```pascal
