@@ -51,7 +51,7 @@
 
 - `ToString` Outputs a JSON string in compact format without encoding.
 - `ToJSON` Outputs a JSON string in compact format, encoding characters less than 32 or greater than 127 based on parameters.
-- `Format` Outputs a formatted JSON string without encoding.
+- `Format` Outputs a formatted JSON string.
 - `ParseJSONValue` Loads data from a string.
 - `LoadFromFile` Loads data from a file.
 - `SaveToFile` Save JSON data to a file.

@@ -51,7 +51,7 @@
 
 - `ToString` 输出 JSON 字符串，紧凑格式，不做编码。
 - `ToJSON` 输出 JSON 字符串，紧凑格式，根据参数对小于32或大于127的字符编码。
-- `Format` 输出格式化的 JSON 字符串，不做编码。
+- `Format` 输出格式化的 JSON 字符串。
 - `ParseJSONValue` 从字符串加载数据。
 - `LoadFromFile` 从文件加载数据。
 - `SaveToFile` 将JSON数据保存到文件。
