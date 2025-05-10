@@ -36,21 +36,20 @@
 - `ToFloat` 转换为浮点数（使用 Extended），默认为 0.0。
 - `ToBool` 转换为布尔值，默认为 False。
 
-- `CloneJValue` 克隆当前值，如果当前值不存在，则生成 TJNull。
-- `IsRoot` 是否是根数据（Path为空）
-- `RootIsJObject` 根是否是JObject
-- `RootIsJArray` 根是否是JArray
-- `IsJObject` 值是否是JObject
-- `IsJArray` 值是否是JObject
-- `IsJString` 值是否是JString
-- `IsJNumber` 值是否是JNumber
-- `IsJBool` 值是否是JBool
-- `IsJNull` 值是否是JJNull
-- `IsNil` 值是否为空
-- `Reset` 重置为出厂设置
+- `CloneJValue` 克隆当前值。
+- `IsRoot` 是否是根数据（Path为空）。
+- `RootIsObject` 根是否是Object。
+- `RootIsArray` 根是否是Array。
+- `IsObject` 值是否是Object。
+- `IsArray` 值是否是Array。
+- `IsString` 值是否是String。
+- `IsNumber` 值是否是Number。
+- `IsBool` 值是否是Bool。
+- `IsNull` 值是否是JNull。
+- `IsNil` 值是否为空。
+- `Reset` 重置为出厂设置。
 
-- `ToString` 输出 JSON 字符串，紧凑格式，不做编码。
-- `ToJSON` 输出 JSON 字符串，紧凑格式，根据参数对小于32或大于127的字符编码。
+- `ToJSON` 输出紧凑格式 JSON 字符串。
 - `Format` 输出格式化的 JSON 字符串。
 - `ParseJSONValue` 从字符串加载数据。
 - `LoadFromFile` 从文件加载数据。
