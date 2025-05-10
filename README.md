@@ -36,21 +36,20 @@
 - `ToFloat` Converts to a floating-point number (using Extended); defaults to 0.0.
 - `ToBool` Converts to a boolean; defaults to False.
 
-- `CloneJValue` Clones the current value; generates TJNull if the current value does not exist.
+- `CloneJValue` Clones the current value.
 - `IsRoot` Checks if it is root data (Path is empty).
-- `RootIsJObject` Checks if the root is a JObject.
-- `RootIsJArray` Checks if the root is a JArray.
-- `IsJObject` Checks if the value is a JObject.
-- `IsJArray` Checks if the value is a JArray.
-- `IsJString` Checks if the value is a JString.
-- `IsJNumber` Checks if the value is a JNumber.
-- `IsJBool` Checks if the value is a JBool.
-- `IsJNull` Checks if the value is a JNull.
+- `RootIsObject` Checks if the root is a Object.
+- `RootIsArray` Checks if the root is a Array.
+- `IsObject` Checks if the value is a Object.
+- `IsArray` Checks if the value is a Array.
+- `IsString` Checks if the value is a String.
+- `IsNumber` Checks if the value is a Number.
+- `IsBool` Checks if the value is a Bool.
+- `IsNull` Checks if the value is a Null.
 - `IsNil` Checks if the value is nil.
 - `Reset` Resets to factory settings.
 
-- `ToString` Outputs a JSON string in compact format without encoding.
-- `ToJSON` Outputs a JSON string in compact format, encoding characters less than 32 or greater than 127 based on parameters.
+- `ToJSON` Outputs a compact JSON string.
 - `Format` Outputs a formatted JSON string.
 - `ParseJSONValue` Loads data from a string.
 - `LoadFromFile` Loads data from a file.
