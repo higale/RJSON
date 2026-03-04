@@ -1,7 +1,7 @@
 ﻿{
   TRJSON - JSON Simple Read and Write
-  - v0.9.14
-  - 2025-05-10 by gale
+  - v0.9.15
+  - 2026-03-04 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -9,8 +9,7 @@ unit rjson;
 interface
 
 uses
-  System.Classes, System.TypInfo, System.SysUtils, System.Json, FMX.Types,
-  System.IOUtils, System.Generics.Collections;
+  System.Classes, System.SysUtils, System.Json, System.IOUtils, System.Generics.Collections;
 
 type
   TJObject = TJSONObject;
@@ -158,8 +157,6 @@ type
     procedure ParseJValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
     procedure LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
     procedure SaveToFile(const AFileName: string; AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False; AWriteBOM: Boolean = True);
-    procedure LoadFromObject(const AObject: TObject; ARaiseExc: Boolean = False);
-    procedure SetObjectProp(AObject: TObject; ARaiseExc: Boolean = False);
   end;
 
   { Iterators }
@@ -198,6 +195,7 @@ end;
 
 procedure TRJSONRoot.SetData(const AValue: TJValue);
 begin
+  Assert(FData = nil, 'TRJSONRoot.SetData: FData is not nil, memory leak risk!');
   FData := AValue;
 end;
 
@@ -213,7 +211,7 @@ end;
 
 { TRJSONRoot }
 { ============================================================================ }
-{ TJValueHelper TJObjectHelper TJArrayHelper}
+{ TJValueHelper TJObjectHelper TJArrayHelper }
 
 type
   TJValueHelper = class helper for TJValue
@@ -227,7 +225,6 @@ type
   TJObjectHelper = class helper for TJObject
   private
     procedure _SetItem(const AName: string; const AValue: TJValue); overload;
-   // procedure _Insert(const AIndex: Integer; const AKey: string; const AValue: TJValue); overload;
     procedure _Insert(const AIndex: Integer; const AValue: TJPair); overload;
   end;
 
@@ -250,7 +247,7 @@ end;
 
 procedure TJArrayHelper._Fill<T>(ACount: Integer);
 begin
-  for var j := Count to ACount do
+  for var j := Count to ACount - 1 do
     AddElement(T.Create);
 end;
 
@@ -365,14 +362,6 @@ begin
     pairTmp.JSONValue := AValue;
 end;
 
-{procedure TJObjectHelper._Insert(const AIndex: Integer; const AKey: string; const AValue: TJValue);
-begin
-  with self do
-  begin
-    FMembers.Insert(AIndex, TJSONPair.Create(AKey, AValue));
-  end;
-end;}
-
 procedure TJObjectHelper._Insert(const AIndex: Integer; const AValue: TJPair);
 begin
   with self do
@@ -381,7 +370,7 @@ begin
   end;
 end;
 
-{ TJValueHelper TJObjectHelper TJArrayHelper}
+{ TJValueHelper TJObjectHelper TJArrayHelper }
 { ============================================================================ }
 { TRPath }
 
@@ -890,8 +879,6 @@ end;
 procedure TRJSON.MoveTo(AIndex: Integer);
 var
   LParent: TJValue;
-  LParentTmp: TRJSON;
-  LValue: TRJSON;
 begin
   LParent := Parent.JValue;
   if (AIndex >= Parent.Count) or (AIndex < 0) then
@@ -964,7 +951,10 @@ var
   LParentValue: TJValue;
 begin
   if IsRoot then
+  begin
     Reset;
+    Exit;
+  end;
   LParentValue := Parent.JValue;
   if LParentValue is TJObject then
   begin
@@ -1089,108 +1079,6 @@ begin
     strs.SaveToFile(AFileName, TEncoding.UTF8);
   finally
     strs.Free;
-  end;
-end;
-
-procedure TRJSON.LoadFromObject(const AObject: TObject; ARaiseExc: Boolean);
-var
-  PropName: string;
-  PropType: string;
-  PropEnumName: string;
-  propList: PPropList;
-  PropValue: Variant;
-  rjTmp: TRJSON;
-begin
-  GetPropList(AObject.ClassInfo, propList);
-  try
-    for var I := 0 to GetTypeData(AObject.ClassInfo).propCount - 1 do
-    begin
-      try
-        PropName := string(propList[I]^.Name);
-        PropType := string(propList[I]^.PropType^.Name);
-        PropEnumName := GetEnumName(TypeInfo(TTypeKind), Int64(propList[I]^.PropType^.Kind));
-        PropValue := GetPropValue(AObject, PropName, True);
-
-        // if PropType = 'TComponentName' then
-         // Continue;
-        if PropName = 'ActiveControl' then
-          Continue;
-
-        if propList[I]^.PropType^.Kind <> tkMethod then
-        begin
-          // rjTmp[PropName + '_dbg_inf'] := PropType + ' ' + PropEnumName;
-          if (propList[I]^.PropType^.Kind <> tkClass) then
-          begin
-            if PropType = 'Int64' then
-              rjTmp[PropName] := Int64(PropValue)
-            else if PropType = 'Integer' then
-              rjTmp[PropName] := Integer(PropValue)
-            else if PropType = 'Boolean' then
-              rjTmp[PropName] := Boolean(PropValue)
-            else if PropType = 'TAlphaColor' then
-              rjTmp[PropName] := '#' + {$IFDEF CPUX64}Int64{$ELSE}Integer{$ENDIF}(PropValue).ToHexString(8)
-            else
-            begin
-              case propList[I]^.PropType^.Kind of
-                tkInteger:
-                  rjTmp[PropName] := {$IFDEF CPUX64}Int64{$ELSE}Integer{$ENDIF}(PropValue);
-                tkInt64:
-                  rjTmp[PropName] := Int64(PropValue);
-                tkFloat:
-                  rjTmp[PropName] := Extended(PropValue);
-              else // tkEnumeration, tkSet, tkUString
-                rjTmp[PropName] := string(PropValue);
-              end;
-            end;
-          end
-          else if PropValue <> 0 then
-          begin
-            rjTmp[PropName].LoadFromObject(TObject(StrToInt64(PropValue)));
-          end;
-        end;
-      except
-        on E: Exception do
-          if ARaiseExc then
-            raise Exception.Create(E.Message);
-      end;
-    end;
-    self := rjTmp;
-  finally
-    FreeMem(propList);
-  end;
-end;
-
-procedure TRJSON.SetObjectProp(AObject: TObject; ARaiseExc: Boolean);
-var
-  PropName: string;
-  PropInfo: PPropInfo;
-begin
-  for var item in self do
-  begin
-    if item.Key.EndsWith('_dbg_inf') then
-      Continue;
-    try
-      PropInfo := GetPropInfo(PTypeInfo(AObject.ClassInfo), item.Key);
-      if PropInfo = nil then
-        Continue;
-      PropName := string(PropInfo^.PropType^.Name);
-      if item.IsObject then
-      begin
-        if PropInfo^.PropType^.Kind = tkClass then
-          item.SetObjectProp(TObject({$IFDEF CPUX64}Int64{$ELSE}Integer{$ENDIF}(GetPropValue(AObject, item.Key))));
-      end
-      else
-      begin
-        if PropName = 'TAlphaColor' then
-          SetPropValue(AObject, item.Key, {$IFDEF CPUX64}StrToInt64{$ELSE}StrToUInt{$ENDIF}('$' + item.ToStr.Substring(1, 8)))
-        else
-          SetPropValue(AObject, item.Key, item.ToStr);
-      end;
-    except
-      on E: Exception do
-        if ARaiseExc then
-          raise Exception.Create(E.Message);
-    end;
   end;
 end;
 
