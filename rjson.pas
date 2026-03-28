@@ -1,7 +1,7 @@
 ﻿{
   TRJSON - JSON Simple Read and Write
-  - v0.9.15
-  - 2026-03-04 by gale
+  - v0.9.16
+  - 2026-03-28 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -79,6 +79,7 @@ type
     function GetCount: Integer;
     function GetLastPath: string;
     function GetIndex: Integer;
+    function GetActualIndex: Integer;
     function GetKey: string;
     function GetRoot: TRJSON;
     function GetParent: TRJSON;
@@ -152,11 +153,13 @@ type
     procedure Delete; overload;
 
     procedure Reset;
-    function ToJSON(AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = True): string;
-    function Format(AIndentation: Integer = 4; AEncodeBelow32: Boolean = False; AEncodeAbove127: Boolean = False): string;
+    function ToJSON(AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False): string;
+    function Format(AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False): string;
     procedure ParseJValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
-    procedure LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
-    procedure SaveToFile(const AFileName: string; AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False; AWriteBOM: Boolean = True);
+      deprecated '函数 ParseJValue 已不建议使用，请使用新的 LoadFromString 函数';
+    function LoadFromString(const AStr: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
+    function LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
+    function SaveToFile(const AFileName: string; AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False; AWriteBOM: Boolean = True; ARaiseExc: Boolean = False): Boolean;
   end;
 
   { Iterators }
@@ -195,7 +198,6 @@ end;
 
 procedure TRJSONRoot.SetData(const AValue: TJValue);
 begin
-  Assert(FData = nil, 'TRJSONRoot.SetData: FData is not nil, memory leak risk!');
   FData := AValue;
 end;
 
@@ -260,7 +262,7 @@ end;
 
 procedure TJArrayHelper._SetItem(AIndex: Integer; const AValue: TJValue);
 begin
-  _Fill<TJNull>(AIndex - 1);
+  _Fill<TJNull>(AIndex);
   if AIndex <= Count - 1 then
     Remove(AIndex).Free;
   _Insert(AIndex, AValue);
@@ -337,7 +339,7 @@ begin
   end
   else if self is TJArray then
   begin
-    TJArray(self)._Fill<TJNull>(AName.ToInteger);
+    TJArray(self)._Fill<TJNull>(AName.ToInteger + 1);
     Result := T(TJArray(self).Items[AName.ToInteger]);
     if not(Result is T) then
     begin
@@ -473,6 +475,8 @@ end;
 
 function TRJSON.GetJValue: TJValue;
 begin
+  if FIRoot.Data = nil then
+    Exit(nil);
   Result := FIRoot.Data.FindValue(FPath);
 end;
 
@@ -561,27 +565,27 @@ end;
 
 function TRJSON.ToStr(const ADefault: string): string;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<string>(ADefault);
+  Result := GetJValue.ToType<string>(ADefault);
 end;
 
 function TRJSON.ToInt(ADefault: Integer = 0): Integer;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<Integer>(ADefault);
+  Result := GetJValue.ToType<Integer>(ADefault);
 end;
 
 function TRJSON.ToInt64(ADefault: Int64 = 0): Int64;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<Int64>(ADefault);
+  Result := GetJValue.ToType<Int64>(ADefault);
 end;
 
 function TRJSON.ToFloat(ADefault: Extended = 0.0): Extended;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<Extended>(ADefault);
+  Result := GetJValue.ToType<Extended>(ADefault);
 end;
 
 function TRJSON.ToBool(ADefault: Boolean = False): Boolean;
 begin
-  Result := FIRoot.Data.FindValue(FPath).ToType<Boolean>(ADefault);
+  Result := GetJValue.ToType<Boolean>(ADefault);
 end;
 
 function TRJSON.GetItems(const APath: TRPath): TRJSON;
@@ -629,9 +633,13 @@ end;
 function TRJSON.GetS(const APath: TRPath): string;
 var
   LPath: string;
+  LRoot: TJValue;
 begin
+  LRoot := FIRoot.Data;
+  if LRoot = nil then
+    Exit('');
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<string>('');
+  Result := LRoot.FindValue(LPath).ToType<string>('');
 end;
 
 procedure TRJSON.SetS(const APath: TRPath; AValue: string);
@@ -645,9 +653,13 @@ end;
 function TRJSON.GetI(const APath: TRPath): Integer;
 var
   LPath: string;
+  LRoot: TJValue;
 begin
+  LRoot := FIRoot.Data;
+  if LRoot = nil then
+    Exit(0);
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Integer>(0);
+  Result := LRoot.FindValue(LPath).ToType<Integer>(0);
 end;
 
 procedure TRJSON.SetI(const APath: TRPath; AValue: Integer);
@@ -661,9 +673,13 @@ end;
 function TRJSON.GetI64(const APath: TRPath): Int64;
 var
   LPath: string;
+  LRoot: TJValue;
 begin
+  LRoot := FIRoot.Data;
+  if LRoot = nil then
+    Exit(0);
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Int64>(0);
+  Result := LRoot.FindValue(LPath).ToType<Int64>(0);
 end;
 
 procedure TRJSON.SetI64(const APath: TRPath; AValue: Int64);
@@ -677,9 +693,13 @@ end;
 function TRJSON.GetF(const APath: TRPath): Extended;
 var
   LPath: string;
+  LRoot: TJValue;
 begin
+  LRoot := FIRoot.Data;
+  if LRoot = nil then
+    Exit(0.0);
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Extended>(0.0);
+  Result := LRoot.FindValue(LPath).ToType<Extended>(0.0);
 end;
 
 procedure TRJSON.SetF(const APath: TRPath; AValue: Extended);
@@ -693,9 +713,13 @@ end;
 function TRJSON.GetB(const APath: TRPath): Boolean;
 var
   LPath: string;
+  LRoot: TJValue;
 begin
+  LRoot := FIRoot.Data;
+  if LRoot = nil then
+    Exit(False);
   LPath := LinkPath(FPath, APath);
-  Result := ForceRootJValue(LPath).FindValue(LPath).ToType<Boolean>(False);
+  Result := LRoot.FindValue(LPath).ToType<Boolean>(False);
 end;
 
 procedure TRJSON.SetB(const APath: TRPath; AValue: Boolean);
@@ -854,7 +878,8 @@ function TRJSON.ItemByValue(const [ref] AValue: TRJSON; AIgnoreCase: Boolean): T
 begin
   for var item in self do
   begin
-    if AValue.JValue.ClassType = item.JValue.ClassType then
+    if (AValue.JValue <> nil) and (item.JValue <> nil) and
+       (AValue.JValue.ClassType = item.JValue.ClassType) then
       if string.Compare(AValue.ToStr, item.ToStr, AIgnoreCase) = 0 then
         Exit(item);
   end;
@@ -862,30 +887,57 @@ end;
 
 function TRJSON.FirstItem: TRJSON;
 begin
+  if Count = 0 then
+    Exit;
   if IsArray then
     Result := Items[0]
   else if IsObject then
-    Result := Pairs[0]
+    Result := Pairs[0];
 end;
 
 function TRJSON.LastItem: TRJSON;
 begin
+  if Count = 0 then
+    Exit;
   if IsArray then
     Result := Items[Count - 1]
   else if IsObject then
-    Result := Pairs[Count - 1]
+    Result := Pairs[Count - 1];
+end;
+
+function TRJSON.GetActualIndex: Integer;
+var
+  LParent: TJValue;
+  LKey: string;
+begin
+  Result := Index;
+  if Result >= 0 then
+    Exit;
+  LParent := Parent.JValue;
+  LKey := Key;
+  if (LParent is TJObject) and (LKey <> '') then
+    for var j := 0 to TJObject(LParent).Count - 1 do
+      if TJObject(LParent).Pairs[j].JsonString.Value = LKey then
+        Exit(j);
 end;
 
 procedure TRJSON.MoveTo(AIndex: Integer);
 var
   LParent: TJValue;
+  LActualIndex: Integer;
 begin
   LParent := Parent.JValue;
+  LActualIndex := GetActualIndex;
   if (AIndex >= Parent.Count) or (AIndex < 0) then
     raise Exception.Create('Index out of bounds');
   if LParent is TJArray then
   begin
-    TJArray(LParent)._Insert(AIndex, TJArray(LParent).Remove(Index));
+    TJArray(LParent)._Insert(AIndex, TJArray(LParent).Remove(LActualIndex));
+    var LParentPath := Parent.FPath;
+    if LParentPath.IsEmpty then
+      FPath := '[' + AIndex.ToString + ']'
+    else
+      FPath := LParentPath + '[' + AIndex.ToString + ']';
   end
   else if LParent is TJObject then
   begin
@@ -895,9 +947,9 @@ end;
 
 procedure TRJSON.Rename(AName: string);
 begin
-  if Parent.IsObject then
-    TJObject(Parent.JValue).Get(Key).Rename(AName);
-
+  if not Parent.IsObject then
+    Exit;
+  TJObject(Parent.JValue).Get(Key).Rename(AName);
   if Parent.IsRoot then
     FPath := AName
   else
@@ -905,15 +957,21 @@ begin
 end;
 
 procedure TRJSON.MoveUp;
+var
+  LIndex: Integer;
 begin
-  if Index > 0 then
-    MoveTo(Index - 1);
+  LIndex := GetActualIndex;
+  if LIndex > 0 then
+    MoveTo(LIndex - 1);
 end;
 
 procedure TRJSON.MoveDown;
+var
+  LIndex: Integer;
 begin
-  if Index < Parent.Count - 1 then
-    MoveTo(Index + 1);
+  LIndex := GetActualIndex;
+  if (LIndex >= 0) and (LIndex < Parent.Count - 1) then
+    MoveTo(LIndex + 1);
 end;
 
 procedure TRJSON.MoveToFirst;
@@ -939,11 +997,14 @@ begin
 end;
 
 procedure TRJSON.Delete(AIndex: Integer);
+var
+  jvTmp: TJValue;
 begin
-  if IsArray then
-  begin
-    TJArray(GetJValue).Remove(AIndex).Free;
-  end;
+  jvTmp := GetJValue;
+  if jvTmp is TJArray then
+    TJArray(jvTmp).Remove(AIndex).Free
+  else if jvTmp is TJObject then
+    TJObject(jvTmp).RemovePair(TJObject(jvTmp).Pairs[AIndex].JsonString.Value).Free;
 end;
 
 procedure TRJSON.Delete;
@@ -972,7 +1033,7 @@ begin
   FPath := '';
 end;
 
-function TRJSON.ToJSON(AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = True): string;
+function TRJSON.ToJSON(AEncodeBelow32: Boolean; AEncodeAbove127: Boolean): string;
 var
   LValue: TJValue;
   Options: TJSONAncestor.TJSONOutputOptions;
@@ -991,39 +1052,39 @@ begin
 end;
 
 function JSONToUniCode(const AStr: string; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = True): string;
+const
+  HexChars: array[0..15] of char = '0123456789ABCDEF';
 var
   ch: char;
-  I: Integer;
-  UnicodeValue: Integer;
-  Buff: array [0 .. 5] of char;
+  I, Len: Integer;
+  U: Integer;
+  sb: TStringBuilder;
 begin
-  for I := 1 to AStr.Length do
-  begin
-    ch := AStr[I];
-    case ch of
-      #0 .. #7, #$b, #$e .. #31, #$0080 .. High(char):
-        begin
-          UnicodeValue := Ord(ch);
-          if AEncodeBelow32 and (UnicodeValue < 32) or AEncodeAbove127 and (UnicodeValue > 127) then
-          begin
-            Buff[0] := '\';
-            Buff[1] := 'u';
-            Buff[2] := char(DecimalToHex((UnicodeValue and 61440) shr 12));
-            Buff[3] := char(DecimalToHex((UnicodeValue and 3840) shr 8));
-            Buff[4] := char(DecimalToHex((UnicodeValue and 240) shr 4));
-            Buff[5] := char(DecimalToHex((UnicodeValue and 15)));
-            Result := Result + Buff;
-          end
-          else
-          begin
-            Result := Result + ch;
-          end;
-        end
-    else
+  Len := AStr.Length;
+  if Len = 0 then
+    Exit('');
+  sb := TStringBuilder.Create(Len);
+  try
+    for I := 1 to Len do
+    begin
+      ch := AStr[I];
+      U := Ord(ch);
+      if ((U < 32) and not CharInSet(ch, [#8, #9, #10, #12, #13])) or (U >= $80) then
       begin
-        Result := Result + ch;
-      end;
+        if (AEncodeBelow32 and (U < 32)) or (AEncodeAbove127 and (U > 127)) then
+          sb.Append('\u').Append(HexChars[(U shr 12) and $F])
+            .Append(HexChars[(U shr 8) and $F])
+            .Append(HexChars[(U shr 4) and $F])
+            .Append(HexChars[U and $F])
+        else
+          sb.Append(ch);
+      end
+      else
+        sb.Append(ch);
     end;
+    Result := sb.ToString;
+  finally
+    sb.Free;
   end;
 end;
 
@@ -1055,10 +1116,17 @@ begin
   self := TJValue.ParseJSONValue(AData, AUseBool, ARaiseExc);
 end;
 
-procedure TRJSON.LoadFromFile(const AFileName: string; AUseBool: Boolean; ARaiseExc: Boolean);
+function TRJSON.LoadFromString(const AStr: string; AUseBool: Boolean; ARaiseExc: Boolean): Boolean;
 begin
+  self := TJSONValue.ParseJSONValue(AStr, AUseBool, ARaiseExc);
+  Result := not IsNil;
+end;
+
+function TRJSON.LoadFromFile(const AFileName: string; AUseBool: Boolean; ARaiseExc: Boolean): Boolean;
+begin
+  Result := False;
   try
-    ParseJValue(TFile.ReadAllText(AFileName, TEncoding.UTF8), AUseBool, ARaiseExc);
+    Result := LoadFromString(TFile.ReadAllText(AFileName, TEncoding.UTF8), AUseBool, ARaiseExc);
   except
     on E: Exception do
     begin
@@ -1068,17 +1136,28 @@ begin
   end;
 end;
 
-procedure TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean; AWriteBOM: Boolean);
+function TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean; AWriteBOM: Boolean; ARaiseExc: Boolean): Boolean;
 var
   strs: TStrings;
 begin
-  strs := TStringList.Create;
+ Result := False;
   try
-    strs.WriteBOM := AWriteBOM;
-    strs.Text := Format(AIndentation, AEncodeBelow32, AEncodeAbove127);
-    strs.SaveToFile(AFileName, TEncoding.UTF8);
-  finally
-    strs.Free;
+    strs := TStringList.Create;
+    try
+      strs.WriteBOM := AWriteBOM;
+      strs.TrailingLineBreak := False;
+      strs.Text := Format(AIndentation, AEncodeBelow32, AEncodeAbove127);
+      strs.SaveToFile(AFileName, TEncoding.UTF8);
+      Result := True;
+    finally
+      strs.Free;
+    end;
+  except
+    on E: Exception do
+    begin
+      if ARaiseExc then
+        raise Exception.Create(E.Message);
+    end;
   end;
 end;
 
