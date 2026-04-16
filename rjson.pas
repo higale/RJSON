@@ -1,7 +1,7 @@
 ﻿{
   TRJSON - JSON Simple Read and Write
-  - v0.9.16
-  - 2026-03-28 by gale
+  - v0.9.17
+  - 2026-04-15 by gale
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -153,13 +153,13 @@ type
     procedure Delete; overload;
 
     procedure Reset;
-    function ToJSON(AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False): string;
-    function Format(AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False): string;
+    function ToJSON(AEscapeUnicode: Boolean = False): string;
+    function Format(AIndentation: Integer = 4; AEscapeUnicode: Boolean = False): string;
     procedure ParseJValue(const AData: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False);
       deprecated '函数 ParseJValue 已不建议使用，请使用新的 LoadFromString 函数';
     function LoadFromString(const AStr: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
     function LoadFromFile(const AFileName: string; AUseBool: Boolean = False; ARaiseExc: Boolean = False): Boolean;
-    function SaveToFile(const AFileName: string; AIndentation: Integer = 4; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = False; AWriteBOM: Boolean = True; ARaiseExc: Boolean = False): Boolean;
+    function SaveToFile(const AFileName: string; AIndentation: Integer = 4; AEscapeUnicode: Boolean = False; AWriteBOM: Boolean = False; ARaiseExc: Boolean = False): Boolean;
   end;
 
   { Iterators }
@@ -1033,7 +1033,7 @@ begin
   FPath := '';
 end;
 
-function TRJSON.ToJSON(AEncodeBelow32: Boolean; AEncodeAbove127: Boolean): string;
+function TRJSON.ToJSON(AEscapeUnicode: Boolean): string;
 var
   LValue: TJValue;
   Options: TJSONAncestor.TJSONOutputOptions;
@@ -1042,16 +1042,14 @@ begin
   LValue := GetJValue;
   if LValue <> nil then
   begin
-    Options := [];
-    if AEncodeBelow32 then
-      Include(Options, TJSONAncestor.TJSONOutputOption.EncodeBelow32);
-    if AEncodeAbove127 then
+    Options := [TJSONAncestor.TJSONOutputOption.EncodeBelow32];
+    if AEscapeUnicode then
       Include(Options, TJSONAncestor.TJSONOutputOption.EncodeAbove127);
     Result := LValue.ToJSON(Options);
   end;
 end;
 
-function JSONToUniCode(const AStr: string; AEncodeBelow32: Boolean = True; AEncodeAbove127: Boolean = True): string;
+function JSONEscapeUnicode(const AStr: string): string;
 const
   HexChars: array[0..15] of char = '0123456789ABCDEF';
 var
@@ -1069,16 +1067,11 @@ begin
     begin
       ch := AStr[I];
       U := Ord(ch);
-      if ((U < 32) and not CharInSet(ch, [#8, #9, #10, #12, #13])) or (U >= $80) then
-      begin
-        if (AEncodeBelow32 and (U < 32)) or (AEncodeAbove127 and (U > 127)) then
-          sb.Append('\u').Append(HexChars[(U shr 12) and $F])
-            .Append(HexChars[(U shr 8) and $F])
-            .Append(HexChars[(U shr 4) and $F])
-            .Append(HexChars[U and $F])
-        else
-          sb.Append(ch);
-      end
+      if U > 127 then
+        sb.Append('\u').Append(HexChars[(U shr 12) and $F])
+          .Append(HexChars[(U shr 8) and $F])
+          .Append(HexChars[(U shr 4) and $F])
+          .Append(HexChars[U and $F])
       else
         sb.Append(ch);
     end;
@@ -1088,7 +1081,7 @@ begin
   end;
 end;
 
-function TRJSON.Format(AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean): string;
+function TRJSON.Format(AIndentation: Integer; AEscapeUnicode: Boolean): string;
 var
   LValue: TJValue;
 begin
@@ -1099,15 +1092,13 @@ begin
     if LValue <> nil then
     begin
       Result := LValue.Format(AIndentation);
-      if AEncodeBelow32 or AEncodeAbove127 then
-      begin
-        Result := JSONToUniCode(Result, AEncodeBelow32, AEncodeAbove127);
-      end;
+      if AEscapeUnicode then
+        Result := JSONEscapeUnicode(Result);
     end;
   end
   else
   begin
-    Result := ToJSON(AEncodeBelow32, AEncodeAbove127);
+    Result := ToJSON(AEscapeUnicode);
   end;
 end;
 
@@ -1136,7 +1127,7 @@ begin
   end;
 end;
 
-function TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AEncodeBelow32: Boolean; AEncodeAbove127: Boolean; AWriteBOM: Boolean; ARaiseExc: Boolean): Boolean;
+function TRJSON.SaveToFile(const AFileName: string; AIndentation: Integer; AEscapeUnicode: Boolean; AWriteBOM: Boolean; ARaiseExc: Boolean): Boolean;
 var
   strs: TStrings;
 begin
@@ -1146,7 +1137,7 @@ begin
     try
       strs.WriteBOM := AWriteBOM;
       strs.TrailingLineBreak := False;
-      strs.Text := Format(AIndentation, AEncodeBelow32, AEncodeAbove127);
+      strs.Text := Format(AIndentation, AEscapeUnicode);
       strs.SaveToFile(AFileName, TEncoding.UTF8);
       Result := True;
     finally
