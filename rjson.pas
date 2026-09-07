@@ -1,7 +1,8 @@
 ﻿{
   TRJSON - JSON Simple Read and Write
-  - v0.9.17
-  - 2026-04-15 by gale
+  - v0.9.18
+  - 2026-06-04 by gale
+  - 2026-06-04: 枚举器改为保存 root/path 快照；移除 TrySetValue 重复包装。
   - https://github.com/higale/RJSON
 }
 unit rjson;
@@ -125,8 +126,8 @@ type
 
     function CloneJValue: TJValue;
     function IsRoot: Boolean; inline;
-    function RootIsObject: Boolean; inline;
-    function RootIsArray: Boolean; inline;
+    function RootIsObject: Boolean;
+    function RootIsArray: Boolean;
     function IsObject: Boolean;
     function IsArray: Boolean;
     function IsString: Boolean;
@@ -165,8 +166,11 @@ type
   { Iterators }
   TRJSONEnumerator = class
   private
-    FPData: ^TRJSON;
+    FIRoot: IRJRoot;
+    FPath: string;
     FIndex: Integer;
+    function GetTargetCount: Integer;
+    function GetTargetJValue: TJValue;
     function GetCurrent: TRJSON;
   public
     constructor Create(const [ref] AData: TRJSON);
@@ -221,7 +225,6 @@ type
     function ToType<T>(ADefault: T): T;
     function GetOrCreate<T: TJValue>(AName: string): T;
     procedure SetValue(const APath: string; const AValue: TJValue);
-    procedure TrySetValue(const APath: string; const AValue: TJValue);
   end;
 
   TJObjectHelper = class helper for TJObject
@@ -273,45 +276,41 @@ var
   LParser: TJSONPathParser;
   preName: string;
   jv: TJValue;
+  LOwnsValue: Boolean;
 begin
-  if APath.IsEmpty then
-    raise Exception.Create('TJValueHelper.SetValue: path cannot be empty');
-  jv := self;
-  LParser := TJSONPathParser.Create(APath);
-  LParser.NextToken;
-  while True do
-  begin
-    preName := LParser.TokenName;
-    LParser.NextToken;
-    case LParser.Token of
-      TJSONPathParser.TToken.Name:
-        jv := jv.GetOrCreate<TJObject>(preName);
-      TJSONPathParser.TToken.ArrayIndex:
-        jv := jv.GetOrCreate<TJArray>(preName);
-      TJSONPathParser.TToken.Eof:
-        begin
-          if jv is TJObject then
-            TJObject(jv)._SetItem(preName, AValue)
-          else
-            TJArray(jv)._SetItem(preName.ToInteger, AValue);
-          break;
-        end;
-    else
-      raise Exception.Create('TJValueHelper.SetValue, LParser.Token Error!');
-    end;
-  end;
-end;
-
-procedure TJValueHelper.TrySetValue(const APath: string; const AValue: TJValue);
-begin
+  LOwnsValue := True;
   try
-    SetValue(APath, AValue);
-  except
-    on E: Exception do
+    if APath.IsEmpty then
+      raise Exception.Create('TJValueHelper.SetValue: path cannot be empty');
+    jv := self;
+    LParser := TJSONPathParser.Create(APath);
+    LParser.NextToken;
+    while True do
     begin
-      AValue.Free;
-      raise Exception.Create(E.Message);
+      preName := LParser.TokenName;
+      LParser.NextToken;
+      case LParser.Token of
+        TJSONPathParser.TToken.Name:
+          jv := jv.GetOrCreate<TJObject>(preName);
+        TJSONPathParser.TToken.ArrayIndex:
+          jv := jv.GetOrCreate<TJArray>(preName);
+        TJSONPathParser.TToken.Eof:
+          begin
+            if jv is TJObject then
+              TJObject(jv)._SetItem(preName, AValue)
+            else
+              TJArray(jv)._SetItem(preName.ToInteger, AValue);
+            LOwnsValue := False;
+            break;
+          end;
+      else
+        raise Exception.Create('TJValueHelper.SetValue, LParser.Token Error!');
+      end;
     end;
+  except
+    if LOwnsValue then
+      AValue.Free;
+    raise;
   end;
 end;
 
@@ -398,8 +397,28 @@ end;
 constructor TRJSONEnumerator.Create(const [ref] AData: TRJSON);
 begin
   inherited Create;
-  FPData := @AData;
+  FIRoot := AData.FIRoot;
+  FPath := AData.FPath;
   FIndex := -1;
+end;
+
+function TRJSONEnumerator.GetTargetCount: Integer;
+var
+  LValue: TJValue;
+begin
+  LValue := GetTargetJValue;
+  if LValue is TJObject then
+    Exit(TJObject(LValue).Count);
+  if LValue is TJArray then
+    Exit(TJArray(LValue).Count);
+  Result := 0;
+end;
+
+function TRJSONEnumerator.GetTargetJValue: TJValue;
+begin
+  if (FIRoot = nil) or (FIRoot.Data = nil) then
+    Exit(nil);
+  Result := FIRoot.Data.FindValue(FPath);
 end;
 
 function TRJSONEnumerator.GetCurrent: TRJSON;
@@ -407,25 +426,25 @@ var
   jvTmp: TJValue;
 begin
   Result.Reset;
-  Result.FIRoot := FPData^.FIRoot;
-  jvTmp := FPData^.GetJValue;
+  Result.FIRoot := FIRoot;
+  jvTmp := GetTargetJValue;
   if jvTmp is TJObject then
   begin
-    if FPData^.FPath = '' then
+    if FPath = '' then
       Result.FPath := TJObject(jvTmp).Pairs[FIndex].JsonString.Value
     else
-      Result.FPath := FPData^.FPath + '.' + TJObject(jvTmp).Pairs[FIndex].JsonString.Value;
+      Result.FPath := FPath + '.' + TJObject(jvTmp).Pairs[FIndex].JsonString.Value;
   end
   else if jvTmp is TJArray then
   begin
-    Result.FPath := FPData^.FPath + '[' + FIndex.ToString + ']';
+    Result.FPath := FPath + '[' + FIndex.ToString + ']';
   end;
 end;
 
 function TRJSONEnumerator.MoveNext: Boolean;
 begin
   Inc(FIndex);
-  Exit(FIndex < FPData^.Count)
+  Exit(FIndex < GetTargetCount)
 end;
 
 { TRJSONEnumerator }
@@ -610,15 +629,7 @@ begin
   LValue := AValue.CloneJValue;
   if LValue = nil then
     LValue := TJNull.Create;
-  try
-    ForceRootJValue(FPath).SetValue(FPath, LValue);
-  except
-    on E: Exception do
-    begin
-      LValue.Free;
-      raise Exception.Create(E.Message);
-    end;
-  end;
+  ForceRootJValue(FPath).SetValue(FPath, LValue);
 end;
 
 procedure TRJSON.SetItems(const APath: TRPath; const [ref] AValue: TRJSON);
@@ -647,7 +658,7 @@ var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  ForceRootJValue(LPath).TrySetValue(LPath, TJString.Create(AValue));
+  ForceRootJValue(LPath).SetValue(LPath, TJString.Create(AValue));
 end;
 
 function TRJSON.GetI(const APath: TRPath): Integer;
@@ -667,7 +678,7 @@ var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
+  ForceRootJValue(LPath).SetValue(LPath, TJNumber.Create(AValue));
 end;
 
 function TRJSON.GetI64(const APath: TRPath): Int64;
@@ -687,7 +698,7 @@ var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
+  ForceRootJValue(LPath).SetValue(LPath, TJNumber.Create(AValue));
 end;
 
 function TRJSON.GetF(const APath: TRPath): Extended;
@@ -707,7 +718,7 @@ var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  ForceRootJValue(LPath).TrySetValue(LPath, TJNumber.Create(AValue));
+  ForceRootJValue(LPath).SetValue(LPath, TJNumber.Create(AValue));
 end;
 
 function TRJSON.GetB(const APath: TRPath): Boolean;
@@ -727,7 +738,7 @@ var
   LPath: string;
 begin
   LPath := LinkPath(FPath, APath);
-  ForceRootJValue(LPath).TrySetValue(LPath, TJBool.Create(AValue));
+  ForceRootJValue(LPath).SetValue(LPath, TJBool.Create(AValue));
 end;
 
 function TRJSON.GetCount: Integer;

@@ -51,7 +51,7 @@
 
 - `ToJSON` 输出紧凑格式 JSON 字符串。
 - `Format` 输出格式化的 JSON 字符串。
-- `ParseJSONValue` 从字符串加载数据。
+- `LoadFromString` 从字符串加载数据。
 - `LoadFromFile` 从文件加载数据。
 - `SaveToFile` 将JSON数据保存到文件。
 

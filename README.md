@@ -51,7 +51,7 @@
 
 - `ToJSON` Outputs a compact JSON string.
 - `Format` Outputs a formatted JSON string.
-- `ParseJSONValue` Loads data from a string.
+- `LoadFromString` Loads data from a string.
 - `LoadFromFile` Loads data from a file.
 - `SaveToFile` Save JSON data to a file.
 
